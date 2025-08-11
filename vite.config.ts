@@ -54,4 +54,22 @@ export default defineConfig({
   server: {
     host: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("react")) {
+            return "react";
+          } else if (id.includes("echarts")) {
+            return "echarts";
+          } else if (id.includes("visactor")) {
+            return "visactor";
+          } else if (id.includes("node_modules")) {
+            return "vendor";
+          }
+          return null;
+        },
+      },
+    },
+  },
 });

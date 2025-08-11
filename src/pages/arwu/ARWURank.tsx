@@ -203,40 +203,10 @@ export function ARWURank() {
                 </Steps>
               </>
             ) : (
-              <ReactECharts
-                style={{ height: 200 }}
-                theme={theme === "dark" ? "dark" : "default"}
-                option={getChartOption({
-                  xAxis: {
-                    type: "category",
-                    data: rankTrends?.arwu?.rkHistory?.map((h) => h.yr?.toString()),
-                  },
-                  yAxis: {
-                    type: "value",
-                    // 排名小的在上面, 反转一下
-                    inverse: true,
-                    scale: true,
-                  },
-                  series: [
-                    {
-                      data: rankTrends?.arwu?.rkHistory?.map((h) => {
-                        const isMatchedYear = h.yr?.toString() === year;
-                        return {
-                          value: parseRank(h.ranking),
-                          itemStyle: isMatchedYear ? { color: getColorFromADM("--adm-color-danger") } : undefined,
-                          symbolSize: isMatchedYear ? 8 : 4,
-                        };
-                      }),
-                      type: "line",
-                      tooltip: {
-                        valueFormatter: (value, dataIndex) => {
-                          // 保留原始的数据, 例如可能是 100-200 这种
-                          return rankTrends?.arwu?.rkHistory?.[dataIndex]?.ranking || (value as number)?.toString();
-                        },
-                      },
-                    },
-                  ],
-                })}
+              <RankTrendLineChart
+                highlightYear={year}
+                years={rankTrends?.arwu?.rkHistory?.map((h) => h.yr)}
+                values={rankTrends?.arwu?.rkHistory?.map((h) => h.ranking)}
               />
             )}
           </Tabs.Tab>

@@ -45,6 +45,12 @@ export function RankTrendLineChart({
               };
             }),
             type: "line",
+            tooltip: {
+              valueFormatter: (value, dataIndex) => {
+                // 保留原始的数据, 例如可能是 100-200 这种
+                return values?.[dataIndex]?.toString() || (value as number)?.toString();
+              },
+            },
           },
         ],
       })}
