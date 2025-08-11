@@ -1,0 +1,17 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* 这里不加上, 手动去各自的页面加上, 因为 list 页面不需要 */
+  /* overflow-y: auto; */
+}
+
+html body {
+  background-color: #f5f5f5;
+  /* background-color: #fafbfc; */
+}
+
+html[data-prefers-color-scheme="dark"] body {
+  background: #262629;
+}
