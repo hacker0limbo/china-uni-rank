@@ -58,9 +58,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes("react")) {
-            return "react";
-          } else if (id.includes("echarts")) {
+          if (id.includes("echarts")) {
             return "echarts";
           } else if (id.includes("visactor")) {
             return "visactor";
