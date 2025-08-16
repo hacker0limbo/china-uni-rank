@@ -11,7 +11,7 @@ export function RankLogo({ color, rankInfo }: RankLogoProps) {
   return (
     <AutoCenter>
       <div style={{ color, fontSize: 30, margin: "10px 0" }}>
-        <FireFill /> {rankInfo ?? "暂无最新排名"}
+        <FireFill /> {rankInfo ?? "暂无排名"}
       </div>
     </AutoCenter>
   );

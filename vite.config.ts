@@ -11,9 +11,6 @@ export default defineConfig({
     eslintPlugin({ eslintOptions: { cache: false } }),
     VitePWA({
       registerType: "autoUpdate",
-      devOptions: {
-        enabled: true,
-      },
       injectRegister: "auto",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
       manifest: {

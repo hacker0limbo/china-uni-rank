@@ -7,3 +7,5 @@ export { Header, type HeaderProps } from "./Header";
 export { ScoreBarChart, type ScoreBarChartProps } from "./ScoreBarChart";
 export { RankTrendLineChart, type RankTrendLineChartProps } from "./RankTrendLineChart";
 export { UnivListItem, type UnivListItemProps } from "./UnivListItem";
+export { FavoriteSwipeAction, type FavoriteSwipeActionProps } from "./FavoriteSwipeAction";
+export { HMTUnivListItem, type HMTUnivListItemProps } from "./HMTUnivListItem";

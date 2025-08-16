@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) navigator.serviceWorker.register('/china-uni-rank/dev-sw.js?dev-sw', { scope: '/china-uni-rank/', type: 'classic' })

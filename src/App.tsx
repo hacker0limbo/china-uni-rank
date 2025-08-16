@@ -7,13 +7,15 @@ import { Home } from "./pages/Home";
 import { NotFound } from "./pages/NotFound";
 import { Settings, ThemeSetting } from "./pages/settings";
 import { Universities, University } from "./pages/universities";
-import { getUnivListWithCategories } from "./api";
-import { useUniversityStore } from "./store";
+import { getUnivListWithCategories, getHMTUnivList } from "./api";
+import { useHMTUniversityStore, useUniversityStore } from "./store";
 import { QSRank, QSRankings } from "./pages/qs";
 import { THERank, THERankings } from "./pages/the";
 import { USNewsRank, USNewsRankings } from "./pages/usnews";
 import { ARWURank, ARWURankings } from "./pages/arwu";
 import { useSettingsStore } from "./store";
+import { HMTUniversities, HMTUniversity } from "./pages/hmt-universities";
+import { arwuHMTCountryLabels } from "./constant";
 
 Toast.config({
   duration: 1000,
@@ -22,6 +24,7 @@ Toast.config({
 function App() {
   const [location, navigate] = useHashLocation();
   const { setUnivList, setCategoryData, setInitialized } = useUniversityStore();
+  const { setHMTUnivList } = useHMTUniversityStore();
   const showTabBar = useMemo(() => location === "/" || location.startsWith("/settings"), [location]);
   const theme = useSettingsStore((state) => state.theme);
 
@@ -37,6 +40,14 @@ function App() {
   }, [setCategoryData, setUnivList, setInitialized]);
 
   useEffect(() => {
+    getHMTUnivList().then((res) => {
+      console.log("获取到所有港澳台高校数据了~~~~");
+      const allHMTCountries = arwuHMTCountryLabels.map((c) => c.value);
+      setHMTUnivList(res.data?.data?.filter((univ) => allHMTCountries.includes(univ.region)));
+    });
+  }, [setHMTUnivList]);
+
+  useEffect(() => {
     // 根据状态设置主题
     document.documentElement.setAttribute("data-prefers-color-scheme", theme === "dark" ? "dark" : "light");
   }, [theme]);
@@ -48,6 +59,8 @@ function App() {
           <Route path="/" component={Home} />
           <Route path="/universities" component={Universities} />
           <Route path="/universities/:up" component={University} />
+          <Route path="/hmt/universities" component={HMTUniversities} />
+          <Route path="/hmt/universities/:up" component={HMTUniversity} />
           <Route path="/qs" component={QSRankings} />
           {/* NOTE: 这里会需要传比较多的 searchParams, 所以这里需要手动匹配 searchParams, 这里的路由是 /qs/rank?coreId=xx&title=yy... */}
           <Route path={/^\/qs\/rank\?.*$/} component={QSRank} />

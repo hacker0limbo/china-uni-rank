@@ -6,6 +6,7 @@ import {
   type ARWUWoldRanking,
   type ARWUWoldRankingsResponse,
   getARWUWoldRankings,
+  getHMTUnivDetailsFromARWU,
   getUnivDetailsFromARWU,
   type UniversityARWUDetail,
 } from "../../api";
@@ -19,14 +20,19 @@ import { getChartOption, getColorFromADM, parseRank } from "../../utils";
 type ARWURankParams = {
   up: string;
   year: string;
+  hmt: string;
 };
 
 export function ARWURank() {
-  const { up, year } = queryString.parse(window.location.hash.split("?")[1]) as ARWURankParams;
+  const {
+    up,
+    year,
+    hmt = false,
+  } = queryString.parse(window.location.hash.split("?")[1], { parseBooleans: true }) as ARWURankParams;
   const [rankDetails, setRankDetails] = useState<ARWUWoldRanking>();
   const [indicators, setIndicators] = useState<ARWUWoldRankingsResponse["data"][0]["indList"]>([]);
   const initialized = useUniversityStore((state) => state.initialized);
-  const [rankTrends, setRankTrends] = useState<Pick<UniversityARWUDetail["details"], "arwu" | "bcur">>();
+  const [rankTrends, setRankTrends] = useState<Partial<Pick<UniversityARWUDetail["details"], "arwu" | "bcur">>>();
   const theme = useSettingsStore((state) => state.theme);
   // 展示形式, 默认使用 steps 展示, 枚举为 steps/chart
   const [rankTrendMode, setRankTrendMode] = useState<string>("steps");
@@ -54,19 +60,33 @@ export function ARWURank() {
   useEffect(() => {
     // 获取到 rankDetails 以后再去获取这个学校的 trend 数据
     if (!isEmpty(rankDetails)) {
-      getUnivDetailsFromARWU(up)
-        .then((res) => {
-          const { arwu, bcur } = res?.data?.[0]?.univData?.details ?? {};
-          setRankTrends({ arwu, bcur });
-        })
-        .catch((error) => {
-          Toast.show({
-            icon: "fail",
-            content: "获取软科排名趋势数据失败了...",
+      if (hmt) {
+        getHMTUnivDetailsFromARWU(up)
+          .then((res) => {
+            const { arwu } = res?.data?.[0]?.univData?.detail ?? {};
+            setRankTrends({ arwu });
+          })
+          .catch((error) => {
+            Toast.show({
+              icon: "fail",
+              content: "获取软科排名趋势数据失败了...",
+            });
           });
-        });
+      } else {
+        getUnivDetailsFromARWU(up)
+          .then((res) => {
+            const { arwu, bcur } = res?.data?.[0]?.univData?.details ?? {};
+            setRankTrends({ arwu, bcur });
+          })
+          .catch((error) => {
+            Toast.show({
+              icon: "fail",
+              content: "获取软科排名趋势数据失败了...",
+            });
+          });
+      }
     }
-  }, [rankDetails, up]);
+  }, [rankDetails, up, hmt]);
 
   return (
     <div style={{ overflowY: "auto" }}>
@@ -210,29 +230,32 @@ export function ARWURank() {
               />
             )}
           </Tabs.Tab>
-          <Tabs.Tab title="软科中国排名" key="bcur">
-            {rankTrendMode === "steps" ? (
-              <>
-                <RankLogo color="var(--adm-color-danger)" rankInfo={rankTrends?.bcur?.rkCategory?.ranking} />
-                <Steps>
-                  {rankTrends?.bcur?.rkHistory?.map((history) => (
-                    <Steps.Step
-                      key={history.yr}
-                      title={history?.ranking}
-                      description={history?.yr}
-                      status={history?.yr?.toString() === year ? "error" : "process"}
-                    />
-                  ))}
-                </Steps>
-              </>
-            ) : (
-              <RankTrendLineChart
-                years={rankTrends?.bcur?.rkHistory?.map((h) => h.yr?.toString())}
-                values={rankTrends?.bcur?.rkHistory?.map((h) => h.ranking)}
-                highlightYear={year}
-              />
-            )}
-          </Tabs.Tab>
+          {/* 港澳台地区高校无国内排名 */}
+          {hmt ? null : (
+            <Tabs.Tab title="软科中国排名" key="bcur">
+              {rankTrendMode === "steps" ? (
+                <>
+                  <RankLogo color="var(--adm-color-danger)" rankInfo={rankTrends?.bcur?.rkCategory?.ranking} />
+                  <Steps>
+                    {rankTrends?.bcur?.rkHistory?.map((history) => (
+                      <Steps.Step
+                        key={history.yr}
+                        title={history?.ranking}
+                        description={history?.yr}
+                        status={history?.yr?.toString() === year ? "error" : "process"}
+                      />
+                    ))}
+                  </Steps>
+                </>
+              ) : (
+                <RankTrendLineChart
+                  years={rankTrends?.bcur?.rkHistory?.map((h) => h.yr?.toString())}
+                  values={rankTrends?.bcur?.rkHistory?.map((h) => h.ranking)}
+                  highlightYear={year}
+                />
+              )}
+            </Tabs.Tab>
+          )}
         </Tabs>
       </Card>
     </div>

@@ -1,15 +1,19 @@
-import { Card, List, Button, ErrorBlock, SwipeAction, SafeArea } from "antd-mobile";
-import { HistogramOutline, UnorderedListOutline } from "antd-mobile-icons";
+import { Card, List, Button, ErrorBlock, SwipeAction, SafeArea, Tabs } from "antd-mobile";
+import { HistogramOutline, TravelOutline, UnorderedListOutline } from "antd-mobile-icons";
 import { useLocation } from "wouter";
-import { Header, UnivListItem } from "../components";
-import { useFavoriteUnivStore, useUniversityStore } from "../store";
+import { FavoriteSwipeAction, Header, HMTUnivListItem, UnivListItem } from "../components";
+import { useFavoriteUnivStore, useHMTUniversityStore, useUniversityStore } from "../store";
 
 export function Home() {
   const navigate = useLocation()[1];
   const favoriteUps = useFavoriteUnivStore((state) => state.favoriteUps);
   const removeFavorite = useFavoriteUnivStore((state) => state.removeFavorite);
   const univList = useUniversityStore((state) => state.univList);
-  const favoriteUnivList = favoriteUps.map((up) => univList.find((u) => u.up === up)).filter(Boolean);
+  const hmtUnivList = useHMTUniversityStore((state) => state.hmtUnivList);
+  const favoriteUnivList = favoriteUps.map((upInfo) => univList.find((u) => u.up === upInfo?.up)).filter(Boolean);
+  const favoriteHMTUnivList = favoriteUps
+    .map((upInfo) => hmtUnivList.find((u) => u.univUp === upInfo?.up))
+    .filter(Boolean);
 
   return (
     <div style={{ paddingBottom: "calc(60px + env(safe-area-inset-bottom))" }}>
@@ -22,7 +26,16 @@ export function Home() {
             navigate("/universities");
           }}
         >
-          国内高校
+          大陆高校
+        </List.Item>
+        <List.Item
+          clickable
+          prefix={<TravelOutline />}
+          onClick={() => {
+            navigate("/hmt/universities");
+          }}
+        >
+          港澳台高校
         </List.Item>
         <List.Item
           clickable
@@ -63,41 +76,54 @@ export function Home() {
         </List.Item>
       </List>
       <List header="收藏" mode="card">
-        {favoriteUnivList.length ? (
-          favoriteUnivList.map((univ) => (
-            <SwipeAction
-              key={univ?.up}
-              onAction={(action) => {
-                if (action.key === "unFavorite") {
-                  removeFavorite(univ?.up as string);
-                }
-              }}
-              rightActions={[
-                {
-                  key: "unFavorite",
-                  text: "取消收藏",
-                  color: "danger",
-                },
-              ]}
-            >
-              <UnivListItem univ={univ!} />
-            </SwipeAction>
-          ))
-        ) : (
-          <Card>
-            <ErrorBlock status="empty" title="暂无收藏的高校" description="前往所有高校添加收藏">
-              <Button
-                block
-                color="primary"
-                onClick={() => {
-                  navigate("/universities");
-                }}
-              >
-                添加收藏
-              </Button>
-            </ErrorBlock>
-          </Card>
-        )}
+        <Tabs>
+          <Tabs.Tab title="大陆高校" key="mainland">
+            {favoriteUnivList.length ? (
+              favoriteUnivList.map((univ) => (
+                <FavoriteSwipeAction key={univ?.up} univUp={univ?.up as string}>
+                  <UnivListItem univ={univ!} />
+                </FavoriteSwipeAction>
+              ))
+            ) : (
+              <Card>
+                <ErrorBlock status="empty" title="暂无收藏的大陆高校" description="前往大陆高校列表添加收藏">
+                  <Button
+                    block
+                    color="primary"
+                    onClick={() => {
+                      navigate("/universities");
+                    }}
+                  >
+                    前往添加
+                  </Button>
+                </ErrorBlock>
+              </Card>
+            )}
+          </Tabs.Tab>
+          <Tabs.Tab title="港澳台高校" key="hmt">
+            {favoriteHMTUnivList.length ? (
+              favoriteHMTUnivList.map((univ) => (
+                <FavoriteSwipeAction key={univ?.univUp} univUp={univ?.univUp as string} hmt>
+                  <HMTUnivListItem univ={univ!} />
+                </FavoriteSwipeAction>
+              ))
+            ) : (
+              <Card>
+                <ErrorBlock status="empty" title="暂无收藏的港澳台高校" description="前往港澳台高校列表添加收藏">
+                  <Button
+                    block
+                    color="primary"
+                    onClick={() => {
+                      navigate("/hmt/universities");
+                    }}
+                  >
+                    前往添加
+                  </Button>
+                </ErrorBlock>
+              </Card>
+            )}
+          </Tabs.Tab>
+        </Tabs>
       </List>
     </div>
   );

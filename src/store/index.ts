@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { type UniversityARWU, type UniversityCategoriesARWU } from "../api";
+import { type UniversityARWU, type UniversityCategoriesARWU, type HMTUniversityARWU } from "../api";
 import { persist } from "zustand/middleware";
 
 export type UniversityStore = {
@@ -30,6 +30,17 @@ export const useUniversityStore = create<UniversityStore>()((set) => ({
   setInitialized: (isInitialized) => set(() => ({ initialized: isInitialized })),
 }));
 
+// 港澳台高校的 store
+export type HMTUniversityStore = {
+  hmtUnivList: HMTUniversityARWU[];
+  setHMTUnivList: (list: HMTUniversityARWU[]) => void;
+};
+
+export const useHMTUniversityStore = create<HMTUniversityStore>()((set) => ({
+  hmtUnivList: [],
+  setHMTUnivList: (list) => set(() => ({ hmtUnivList: list })),
+}));
+
 // 设置的 store
 export type SettingsStore = {
   theme: "light" | "dark";
@@ -42,9 +53,9 @@ export const useSettingsStore = create<SettingsStore>()((set) => ({
 }));
 
 export type FavoriteUnivStore = {
-  // 存高校的 ups
-  favoriteUps: string[];
-  addFavorite: (up: string) => void;
+  // 存高校的 ups, 如果 hmt 为 true, 代表是港澳台高校, 否则是大陆高校
+  favoriteUps: { up: string; hmt?: boolean }[];
+  addFavorite: (up: string, hmt?: boolean) => void;
   removeFavorite: (up: string) => void;
 };
 
@@ -53,8 +64,9 @@ export const useFavoriteUnivStore = create<FavoriteUnivStore>()(
   persist(
     (set) => ({
       favoriteUps: [],
-      addFavorite: (up: string) => set((state) => ({ favoriteUps: [...state.favoriteUps, up] })),
-      removeFavorite: (up: string) => set((state) => ({ favoriteUps: state.favoriteUps.filter((u) => u !== up) })),
+      addFavorite: (up: string, hmt: boolean = false) =>
+        set((state) => ({ favoriteUps: [...state.favoriteUps, { up, hmt }] })),
+      removeFavorite: (up: string) => set((state) => ({ favoriteUps: state.favoriteUps.filter((u) => u.up !== up) })),
     }),
     {
       name: "favorite-universities",

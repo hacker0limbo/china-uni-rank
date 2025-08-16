@@ -17,17 +17,15 @@ import {
   type SearchBarRef,
   SwipeAction,
 } from "antd-mobile";
-import { useLocation } from "wouter";
 import { useFavoriteUnivStore, useUniversityStore } from "../../store";
 import { AppOutline, DownFill, EnvironmentOutline, FireFill, RedoOutline } from "antd-mobile-icons";
 import { ARWU_BASE_URL } from "../../api";
 import { sleep } from "../../utils";
-import { Header, UnivListItem } from "../../components";
+import { FavoriteSwipeAction, Header, UnivListItem } from "../../components";
 import { PAGE_SIZE } from "../../constant";
 
 // TODO: 使用 react-virtualized 提高性能
 export function Universities() {
-  const navigate = useLocation()[1];
   const univList = useUniversityStore((state) => state.univList);
   const categoryData = useUniversityStore((state) => state.categoryData);
   // 展示的高校列表, 基于当前页数展示从第一项到当前页数最后一页
@@ -85,7 +83,7 @@ export function Universities() {
 
   return (
     <>
-      <Header title="国内高校" />
+      <Header title="大陆高校" />
       <div style={{ padding: 12, backgroundColor: "var(--adm-color-background)" }}>
         <SearchBar
           ref={searchRef}
@@ -147,34 +145,10 @@ export function Universities() {
         {filteredUnivList.length ? (
           <>
             {displayedUnivList.map((univ) => {
-              const isFavorite = favoriteUps.includes(univ.up);
-
               return (
-                <SwipeAction
-                  key={univ?.up}
-                  rightActions={[
-                    {
-                      key: "favorite",
-                      text: isFavorite ? "取消收藏" : "收藏",
-                      color: isFavorite ? "danger" : "warning",
-                    },
-                  ]}
-                  onAction={(action) => {
-                    if (action.key === "favorite") {
-                      if (isFavorite) {
-                        removeFavorite(univ.up);
-                      } else {
-                        addFavorite(univ.up);
-                      }
-                      Toast.show({
-                        icon: "success",
-                        content: isFavorite ? "取消收藏成功" : "收藏成功",
-                      });
-                    }
-                  }}
-                >
+                <FavoriteSwipeAction key={univ.up} univUp={univ.up} hmt={false}>
                   <UnivListItem univ={univ} />
-                </SwipeAction>
+                </FavoriteSwipeAction>
               );
             })}
           </>

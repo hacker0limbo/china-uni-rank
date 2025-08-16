@@ -1,6 +1,7 @@
 import { type USNewsWorldRanking } from "../api";
 import { isNil, merge } from "lodash-es";
 import { type EChartsOption } from "echarts";
+import { type ListTableConstructorOptions } from "@visactor/vtable";
 
 export const sleep = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
 
@@ -9,7 +10,7 @@ export function formatUSNewsRank(ranks?: USNewsWorldRanking["ranks"]): string {
   if (ranks?.[0]?.is_ranked) {
     return ranks?.[0]?.is_tied ? "=" + ranks?.[0]?.value : ranks?.[0]?.value;
   }
-  return "n/a";
+  return "暂无排名";
 }
 
 /**
@@ -92,11 +93,28 @@ export function getChartOption(option: EChartsOption): EChartsOption {
       trigger: "axis",
     },
   };
-  return merge(baseOption, option);
+  return merge({}, baseOption, option);
 }
 
 // 由于 echarts 无法获取到 css 变量，这里手动从 antd-mobile 获取颜色值
 export function getColorFromADM(colorName: string) {
   const rootStyle = getComputedStyle(document.documentElement);
   return rootStyle.getPropertyValue(colorName).trim();
+}
+
+// 基于 vtable 的基本配置, 生成图表配置
+export function getTableOption(option: ListTableConstructorOptions): ListTableConstructorOptions {
+  const defaultTableOption: ListTableConstructorOptions = {
+    widthMode: "adaptive",
+    heightMode: "autoHeight",
+    autoWrapText: true,
+    select: {
+      disableSelect: true,
+      disableHeaderSelect: true,
+    },
+    // 当列数较少时自动撑满容器
+    autoFillWidth: true,
+  };
+
+  return merge({}, defaultTableOption, option);
 }

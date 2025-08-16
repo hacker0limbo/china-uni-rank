@@ -1,10 +1,30 @@
 // 列表页每页显示的高校数量
 export const PAGE_SIZE = 20;
 
-// 软科排名支持的年份
-export const arwuYears = ["2024", "2023", "2022"];
+// 软科港澳台地区枚举
+export const arwuHMTCountryLabels = [
+  {
+    label: "全部地区",
+    value: "all",
+  },
+  {
+    label: "中国香港",
+    value: "China-Hong Kong",
+  },
+  {
+    label: "中国澳门",
+    value: "China-Macau",
+  },
+  {
+    label: "中国台湾",
+    value: "China-Taiwan",
+  },
+];
 
-export const arwuCountries = ["全部国家", "中国", "中国香港", "中国台湾", "中国澳门"];
+// 软科排名支持的年份
+export const arwuYears = ["2025", "2024", "2023", "2022"];
+
+export const arwuCountries = ["全部地区", "中国", "中国香港", "中国台湾", "中国澳门"];
 
 // qs 里的 nid 来匹配年份
 export const qsNidToYear = {
@@ -22,7 +42,7 @@ export const qsLatestYearNid = Math.max(
 // qs 排名的国家筛选
 export const qsCountryLabels = [
   {
-    label: "全部国家",
+    label: "全部地区",
     value: "All",
     queryValue: ["cn", "hk", "tw", "mo"],
   },
@@ -49,7 +69,7 @@ export const qsCountryLabels = [
 ];
 
 // 泰晤士所有国家
-export const theCountries = ["全部国家", "中国", "中国香港", "台湾", "中国澳门"];
+export const theCountries = ["全部地区", "中国", "中国香港", "台湾", "中国澳门"];
 
 // TODO: 这里的 hash 值可能会变, 需要定期去官网查询
 export const theYearToHash = {
@@ -64,7 +84,7 @@ export const theLatestYear = Math.max(
 )?.toString() as keyof typeof theYearToHash;
 
 export const usnewsCountries = {
-  All: "全部国家",
+  All: "全部地区",
   China: "中国",
   "Hong Kong": "中国香港",
   Taiwan: "台湾",

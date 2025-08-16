@@ -85,7 +85,7 @@ export function QSRankings() {
         <Grid.Item>
           <Dropdown.Item
             key="countries"
-            title={qsCountryLabels.find((c) => c.value === countriesPickerValue[0])?.label ?? "全部国家"}
+            title={qsCountryLabels.find((c) => c.value === countriesPickerValue[0])?.label}
             arrowIcon={<DownFill />}
             onClick={() => {
               setShowCountriesPicker(true);

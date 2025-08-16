@@ -41,22 +41,13 @@ import { Header, QSRankStepsWithLogo, RankLogo, Score, SkeletonWrapper } from ".
 import { qsNidToYear, qsLatestYearNid, theLatestYear, arwuYears } from "../../constant";
 import queryString from "query-string";
 import usnews from "../../store/usnews.json";
-import { formatUSNewsRank } from "../../utils";
+import { formatUSNewsRank, getTableOption } from "../../utils";
 import { ListTable } from "@visactor/react-vtable";
-import { themes } from "@visactor/vtable/es";
-
-const defaultTableOption = {
-  widthMode: "autoWidth",
-  select: {
-    disableSelect: true,
-    disableHeaderSelect: true,
-  },
-  // 当列数较少时自动撑满容器
-  autoFillWidth: true,
-} as const;
+import { type ColumnDefine } from "@visactor/vtable";
+import { useTableTheme } from "../../hooks";
 
 // 软科中国大学专业排名
-const majorColumns = [
+const majorColumns: ColumnDefine[] = [
   {
     field: "code",
     title: "专业代码",
@@ -67,17 +58,16 @@ const majorColumns = [
   },
   {
     field: "grade",
-    title: "评级",
+    title: "专业评级",
   },
   {
     field: "ranking",
     title: "专业排名",
-    sort: true,
   },
 ];
 
 // 软科中国最好学科排名
-const subjectColumns = [
+const subjectColumns: ColumnDefine[] = [
   {
     field: "code",
     title: "学科代码",
@@ -97,7 +87,7 @@ const subjectColumns = [
 ];
 
 // 软科世界一流学科排名
-const globalSubjectColumns = [
+const globalSubjectColumns: ColumnDefine[] = [
   {
     field: "code",
     title: "学科代码",
@@ -126,13 +116,12 @@ export function University() {
   const usnewsDetails = usnews.find((u) => u.name.toLowerCase() === detailsARWU?.nameEn?.toLowerCase()) as
     | USNewsWorldRanking
     | undefined;
-  const theme = useSettingsStore((state) => state.theme);
-  const tableTheme = useMemo(() => (theme === "dark" ? themes.DARK : themes.DEFAULT), [theme]);
+  const tableTheme = useTableTheme();
   // 收藏
   const favoriteUps = useFavoriteUnivStore((state) => state.favoriteUps);
   const addFavorite = useFavoriteUnivStore((state) => state.addFavorite);
   const removeFavorite = useFavoriteUnivStore((state) => state.removeFavorite);
-  const isFavorite = useMemo(() => favoriteUps.includes(up), [favoriteUps, up]);
+  const isFavorite = useMemo(() => favoriteUps?.map((u) => u.up)?.includes(up), [favoriteUps, up]);
 
   useEffect(() => {
     if (up && initialized) {
@@ -145,7 +134,7 @@ export function University() {
         .catch((error) => {
           Toast.show({
             icon: "fail",
-            content: "获取软科数据失败了...",
+            content: "获取软科高校详情数据失败了...",
           });
         })
         .finally(() => {
@@ -424,35 +413,32 @@ export function University() {
           </Tabs.Tab>
           <Tabs.Tab title="所有上榜专业" key="bcmrAll">
             <ListTable
-              option={{
+              option={getTableOption({
                 columns: majorColumns,
                 records: detailsARWU?.details?.bcmr?.majorAll?.[0]?.children,
                 theme: tableTheme,
-                ...defaultTableOption,
-              }}
+              })}
               height="300px"
             />
           </Tabs.Tab>
           <Tabs.Tab title="优势专业" key="bcmrAdv">
             <ListTable
               theme={tableTheme}
-              option={{
+              option={getTableOption({
                 columns: majorColumns,
                 records: detailsARWU?.details?.bcmr?.majorAdva,
                 theme: tableTheme,
-                ...defaultTableOption,
-              }}
+              })}
               height="300px"
             />
           </Tabs.Tab>
           <Tabs.Tab title="A+专业" key="bcmrAPlus">
             <ListTable
-              option={{
+              option={getTableOption({
                 columns: majorColumns,
                 records: detailsARWU?.details?.bcmr?.majorAPlus?.children,
                 theme: tableTheme,
-                ...defaultTableOption,
-              }}
+              })}
               height="300px"
             />
           </Tabs.Tab>
@@ -478,23 +464,21 @@ export function University() {
           </Tabs.Tab>
           <Tabs.Tab title="所有学科" key="bcsrAll">
             <ListTable
-              option={{
+              option={getTableOption({
                 columns: subjectColumns,
                 records: detailsARWU?.details?.bcsr?.subjCategory?.map((c) => c.subj)?.flat(),
                 theme: tableTheme,
-                ...defaultTableOption,
-              }}
+              })}
               height="300px"
             />
           </Tabs.Tab>
           <Tabs.Tab title="优势学科" key="bcsrAdv">
             <ListTable
-              option={{
+              option={getTableOption({
                 columns: subjectColumns,
                 records: detailsARWU?.details?.bcsr?.subjAdva,
                 theme: tableTheme,
-                ...defaultTableOption,
-              }}
+              })}
               height="300px"
             />
           </Tabs.Tab>
@@ -520,23 +504,21 @@ export function University() {
           </Tabs.Tab>
           <Tabs.Tab title="所有学科" key="grasAll">
             <ListTable
-              option={{
+              option={getTableOption({
                 columns: globalSubjectColumns,
                 records: detailsARWU?.details?.gras?.subjCategory?.map((c) => c.subj)?.flat(),
                 theme: tableTheme,
-                ...defaultTableOption,
-              }}
+              })}
               height="300px"
             />
           </Tabs.Tab>
           <Tabs.Tab title="优势学科" key="grasAdv">
             <ListTable
-              option={{
+              option={getTableOption({
                 columns: globalSubjectColumns,
                 records: detailsARWU?.details?.gras?.subjAdva,
                 theme: tableTheme,
-                ...defaultTableOption,
-              }}
+              })}
               height="300px"
             />
           </Tabs.Tab>

@@ -104,6 +104,8 @@ export function ARWURankings() {
                     const params = queryString.stringify({
                       up: univ.univUp || univ.univUpEn,
                       year: yearPickerValue[0],
+                      // 如果是港澳台高校 univUpEn 会存在值
+                      hmt: univ.univUpEn ? true : false,
                     });
                     window.location.hash = `/arwu/rank?${params}`;
                   }}
