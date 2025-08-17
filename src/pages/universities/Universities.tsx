@@ -83,7 +83,7 @@ export function Universities() {
 
   return (
     <>
-      <Header title="大陆高校" />
+      <Header title="内地高校" />
       <div style={{ padding: 12, backgroundColor: "var(--adm-color-background)" }}>
         <SearchBar
           ref={searchRef}

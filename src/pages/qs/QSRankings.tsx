@@ -8,6 +8,7 @@ import { uniqBy } from "lodash-es";
 import { useUniversityStore } from "../../store";
 import queryString from "query-string";
 import { qsNidToYear, qsCountryLabels, qsLatestYearNid } from "../../constant";
+import { getCnNameFromTranslation } from "../../utils";
 
 // 展示所有 qs 排名的学校
 export function QSRankings() {
@@ -115,7 +116,8 @@ export function QSRankings() {
                   </Space>
                 }
                 description={
-                  univList?.find((u) => u.nameEn?.toLowerCase() === qsUniv.title?.toLowerCase())?.nameCn ?? qsUniv.title
+                  univList?.find((u) => u.nameEn?.toLowerCase() === qsUniv.title?.toLowerCase())?.nameCn ??
+                  getCnNameFromTranslation(qsUniv.title)
                 }
                 onClick={() => {
                   const params = queryString.stringify({

@@ -36,7 +36,7 @@ import { qsNidToYear, qsCountryLabels } from "../../constant";
 import { Header, RankTrendLineChart, ScoreBarChart, SkeletonWrapper } from "../../components";
 import { useSettingsStore, useUniversityStore } from "../../store";
 import { Score, QSRankStepsWithLogo } from "../../components";
-import { getColorFromADM } from "../../utils";
+import { getCnNameFromTranslation, getColorFromADM } from "../../utils";
 
 type QSRankParams = {
   coreId: string;
@@ -173,7 +173,7 @@ export function QSRank() {
         <SkeletonWrapper loading={loadingRankDetails} showTitle>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <Space direction="vertical" style={{ "--gap-horizontal": "4px" }}>
-              <div style={{ fontSize: 18, fontWeight: "bold" }}>{univCnName ?? title}</div>
+              <div style={{ fontSize: 18, fontWeight: "bold" }}>{univCnName ?? getCnNameFromTranslation(title)}</div>
               <Space
                 align="center"
                 style={{

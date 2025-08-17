@@ -26,7 +26,7 @@ export function Home() {
             navigate("/universities");
           }}
         >
-          大陆高校
+          内地高校
         </List.Item>
         <List.Item
           clickable
@@ -77,7 +77,7 @@ export function Home() {
       </List>
       <List header="收藏" mode="card">
         <Tabs>
-          <Tabs.Tab title="大陆高校" key="mainland">
+          <Tabs.Tab title="内地高校" key="mainland">
             {favoriteUnivList.length ? (
               favoriteUnivList.map((univ) => (
                 <FavoriteSwipeAction key={univ?.up} univUp={univ?.up as string}>
@@ -86,7 +86,7 @@ export function Home() {
               ))
             ) : (
               <Card>
-                <ErrorBlock status="empty" title="暂无收藏的大陆高校" description="前往大陆高校列表添加收藏">
+                <ErrorBlock status="empty" title="暂无收藏的内地高校" description="前往内地高校列表添加收藏">
                   <Button
                     block
                     color="primary"

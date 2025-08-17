@@ -24,6 +24,7 @@ export const arwuHMTCountryLabels = [
 // 软科排名支持的年份
 export const arwuYears = ["2025", "2024", "2023", "2022"];
 
+// NOTE: 注意这里国家不能修改, 因为是官网的 region 选项
 export const arwuCountries = ["全部地区", "中国", "中国香港", "中国台湾", "中国澳门"];
 
 // qs 里的 nid 来匹配年份
@@ -47,28 +48,28 @@ export const qsCountryLabels = [
     queryValue: ["cn", "hk", "tw", "mo"],
   },
   {
-    label: "中国",
+    label: "中国内地",
     value: "China (Mainland)",
     queryValue: ["cn"],
   },
   {
-    label: "香港",
+    label: "中国香港",
     value: "Hong Kong SAR",
     queryValue: ["hk"],
   },
   {
-    label: "台湾",
+    label: "中国台湾",
     value: "Taiwan",
     queryValue: ["tw"],
   },
   {
-    label: "澳门",
+    label: "中国澳门",
     value: "Macau SAR",
     queryValue: ["mo"],
   },
 ];
 
-// 泰晤士所有国家
+// 泰晤士所有国家, NOTE: 这里地区不能修改, 因为是官网的 region 选项
 export const theCountries = ["全部地区", "中国", "中国香港", "台湾", "中国澳门"];
 
 // TODO: 这里的 hash 值可能会变, 需要定期去官网查询
@@ -85,8 +86,8 @@ export const theLatestYear = Math.max(
 
 export const usnewsCountries = {
   All: "全部地区",
-  China: "中国",
+  China: "中国内地",
   "Hong Kong": "中国香港",
-  Taiwan: "台湾",
+  Taiwan: "中国台湾",
   Macau: "中国澳门",
 };

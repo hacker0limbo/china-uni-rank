@@ -7,7 +7,7 @@ import { useUniversityStore } from "../../store";
 import { usnewsCountries } from "../../constant";
 import type { USNewsWorldRanking } from "../../api";
 import { Header, Score } from "../../components";
-import { formatUSNewsRank } from "../../utils";
+import { formatUSNewsRank, getCnNameFromTranslation } from "../../utils";
 
 const statsTitle = {
   "Global Score": "综合得分",
@@ -21,7 +21,7 @@ export function USNewsRank() {
   const univList = useUniversityStore((state) => state.univList);
   const cnName = useMemo(() => {
     const u = univList.find((u) => u?.nameEn?.toLowerCase() === rankDetails?.name);
-    return u?.nameCn ?? rankDetails?.name;
+    return u?.nameCn;
   }, [rankDetails?.name, univList]);
 
   return (
@@ -49,7 +49,9 @@ export function USNewsRank() {
         }
       >
         <Space direction="vertical" style={{ "--gap-horizontal": "4px" }}>
-          <div style={{ fontSize: 18, fontWeight: "bold" }}>{cnName}</div>
+          <div style={{ fontSize: 18, fontWeight: "bold" }}>
+            {cnName ?? getCnNameFromTranslation(rankDetails?.name)}
+          </div>
           <Space style={{ fontSize: 14, color: "var(--adm-color-weak)", "--gap-horizontal": "4px" }}>
             {usnewsCountries?.[rankDetails?.country_name]}·{rankDetails?.city}
           </Space>

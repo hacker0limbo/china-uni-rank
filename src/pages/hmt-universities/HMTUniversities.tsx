@@ -23,8 +23,6 @@ export function HMTUniversities() {
     [filteredUnivList, currentPage]
   );
 
-  console.log("hmtUnivList", hmtUnivList);
-
   return (
     <>
       <Header title="港澳台高校" />

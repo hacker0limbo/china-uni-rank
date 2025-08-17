@@ -2,7 +2,7 @@ import { List, Space, Image, Tag } from "antd-mobile";
 import { ARWU_BASE_URL, type HMTUniversityARWU } from "../api";
 import { EnvironmentOutline, FireFill } from "antd-mobile-icons";
 import { useLocation } from "wouter";
-import hmtTranslation from "../translations/hmt.json";
+import { getCnNameFromTranslation } from "../utils";
 
 export type HMTUnivListItemProps = {
   univ: HMTUniversityARWU;
@@ -32,7 +32,7 @@ export function HMTUnivListItem({ univ }: HMTUnivListItemProps) {
         navigate(`/hmt/universities/${univ.univUp}`);
       }}
     >
-      {hmtTranslation.find((item) => item.nameEn.toUpperCase() === univ.nameEn.toUpperCase())?.nameCn ?? univ.nameEn}
+      {getCnNameFromTranslation(univ.nameEn)}
     </List.Item>
   );
 }

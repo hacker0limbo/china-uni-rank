@@ -2,6 +2,7 @@ import { type USNewsWorldRanking } from "../api";
 import { isNil, merge } from "lodash-es";
 import { type EChartsOption } from "echarts";
 import { type ListTableConstructorOptions } from "@visactor/vtable";
+import hmt from "../translations/hmt.json";
 
 export const sleep = (time: number) => new Promise((resolve) => setTimeout(resolve, time));
 
@@ -117,4 +118,9 @@ export function getTableOption(option: ListTableConstructorOptions): ListTableCo
   };
 
   return merge({}, defaultTableOption, option);
+}
+
+// 根据英文名和翻译配置得到高校的中文名
+export function getCnNameFromTranslation(nameEn?: string) {
+  return hmt.find((item) => item.nameEn.toLowerCase() === nameEn?.toLowerCase())?.nameCn || nameEn;
 }

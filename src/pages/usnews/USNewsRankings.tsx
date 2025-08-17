@@ -5,7 +5,7 @@ import usnews from "../../store/usnews.json";
 import { type USNewsWorldRanking } from "../../api";
 import { useMemo, useState } from "react";
 import { PAGE_SIZE, usnewsCountries } from "../../constant";
-import { formatUSNewsRank, sleep } from "../../utils";
+import { formatUSNewsRank, getCnNameFromTranslation, sleep } from "../../utils";
 import { useUniversityStore } from "../../store";
 import { Header } from "../../components";
 
@@ -56,7 +56,8 @@ export function USNewsRankings() {
                   </Space>
                 }
                 description={
-                  univList?.find((u) => u.nameEn?.toLowerCase() === univ?.name?.toLowerCase())?.nameCn ?? univ.name
+                  univList?.find((u) => u.nameEn?.toLowerCase() === univ?.name?.toLowerCase())?.nameCn ??
+                  getCnNameFromTranslation(univ.name)
                 }
                 onClick={() => {
                   navigate(`/usnews/${univ.id}`);

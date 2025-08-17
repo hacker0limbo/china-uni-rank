@@ -47,10 +47,17 @@ export type SettingsStore = {
   setTheme: (theme: "light" | "dark") => void;
 };
 
-export const useSettingsStore = create<SettingsStore>()((set) => ({
-  theme: "light",
-  setTheme: (theme) => set(() => ({ theme })),
-}));
+export const useSettingsStore = create<SettingsStore>()(
+  persist(
+    (set) => ({
+      theme: "light",
+      setTheme: (theme) => set(() => ({ theme })),
+    }),
+    {
+      name: "settings",
+    }
+  )
+);
 
 export type FavoriteUnivStore = {
   // 存高校的 ups, 如果 hmt 为 true, 代表是港澳台高校, 否则是大陆高校

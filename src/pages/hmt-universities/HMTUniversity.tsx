@@ -17,12 +17,11 @@ import { Card, Rate, Space, Toast, Image, Divider, Grid, Tabs, AutoCenter } from
 import { GlobalOutline, LinkOutline, LocationOutline, RightOutline, StarOutline } from "antd-mobile-icons";
 import queryString from "query-string";
 import { arwuYears, qsLatestYearNid, qsNidToYear, theLatestYear } from "../../constant";
-import { ListTable } from "@visactor/react-vtable";
+import { ListTableSimple } from "@visactor/react-vtable";
 import { type ColumnDefine } from "@visactor/vtable";
-import { formatUSNewsRank, getTableOption } from "../../utils";
+import { formatUSNewsRank, getCnNameFromTranslation, getTableOption } from "../../utils";
 import { useTableTheme } from "../../hooks";
 import usnews from "../../store/usnews.json";
-import hmtTranslation from "../../translations/hmt.json";
 
 // 软科世界一流学科排名
 const globalSubjectColumns: ColumnDefine[] = [
@@ -58,9 +57,6 @@ export function HMTUniversity() {
   const usnewsDetails = usnews.find((u) => u.name.toLowerCase() === hmtDetailsARWU?.nameEn?.toLowerCase()) as
     | USNewsWorldRanking
     | undefined;
-  const nameCn = hmtTranslation.find(
-    (item) => item.nameEn.toUpperCase() === hmtDetailsARWU?.nameEn?.toUpperCase()
-  )?.nameCn;
 
   useEffect(() => {
     if (up && initialized) {
@@ -166,7 +162,7 @@ export function HMTUniversity() {
         <SkeletonWrapper loading={loadingHMTDetailsARWU} showTitle>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Space direction="vertical" style={{ "--gap-vertical": "4px" }}>
-              <div style={{ fontSize: 18, fontWeight: "bold" }}>{nameCn ?? hmtDetailsARWU?.nameEn}</div>
+              <div style={{ fontSize: 18, fontWeight: "bold" }}>{getCnNameFromTranslation(hmtDetailsARWU?.nameEn)}</div>
               <div style={{ fontSize: 14, color: "var(--adm-color-weak)" }}>{hmtDetailsARWU?.nameEn}</div>
               <Space style={{ fontSize: 14, color: "var(--adm-color-weak)", "--gap-horizontal": "4px" }}>
                 {hmtDetailsARWU?.region}
@@ -309,7 +305,7 @@ export function HMTUniversity() {
       >
         <Tabs>
           <Tabs.Tab title="所有学科" key="grasAll">
-            <ListTable
+            <ListTableSimple
               option={getTableOption({
                 columns: globalSubjectColumns,
                 records: hmtDetailsARWU?.detail?.gras?.subjCategory?.map((c) => c.subj)?.flat(),
@@ -319,7 +315,7 @@ export function HMTUniversity() {
             />
           </Tabs.Tab>
           <Tabs.Tab title="优势学科" key="grasAdv">
-            <ListTable
+            <ListTableSimple
               option={getTableOption({
                 columns: globalSubjectColumns,
                 records: hmtDetailsARWU?.detail?.gras?.subjAdva,

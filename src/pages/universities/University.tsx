@@ -42,7 +42,7 @@ import { qsNidToYear, qsLatestYearNid, theLatestYear, arwuYears } from "../../co
 import queryString from "query-string";
 import usnews from "../../store/usnews.json";
 import { formatUSNewsRank, getTableOption } from "../../utils";
-import { ListTable } from "@visactor/react-vtable";
+import { ListTableSimple } from "@visactor/react-vtable";
 import { type ColumnDefine } from "@visactor/vtable";
 import { useTableTheme } from "../../hooks";
 
@@ -412,7 +412,7 @@ export function University() {
             </Grid>
           </Tabs.Tab>
           <Tabs.Tab title="所有上榜专业" key="bcmrAll">
-            <ListTable
+            <ListTableSimple
               option={getTableOption({
                 columns: majorColumns,
                 records: detailsARWU?.details?.bcmr?.majorAll?.[0]?.children,
@@ -422,7 +422,7 @@ export function University() {
             />
           </Tabs.Tab>
           <Tabs.Tab title="优势专业" key="bcmrAdv">
-            <ListTable
+            <ListTableSimple
               theme={tableTheme}
               option={getTableOption({
                 columns: majorColumns,
@@ -433,7 +433,7 @@ export function University() {
             />
           </Tabs.Tab>
           <Tabs.Tab title="A+专业" key="bcmrAPlus">
-            <ListTable
+            <ListTableSimple
               option={getTableOption({
                 columns: majorColumns,
                 records: detailsARWU?.details?.bcmr?.majorAPlus?.children,
@@ -463,7 +463,7 @@ export function University() {
             </Grid>
           </Tabs.Tab>
           <Tabs.Tab title="所有学科" key="bcsrAll">
-            <ListTable
+            <ListTableSimple
               option={getTableOption({
                 columns: subjectColumns,
                 records: detailsARWU?.details?.bcsr?.subjCategory?.map((c) => c.subj)?.flat(),
@@ -473,7 +473,7 @@ export function University() {
             />
           </Tabs.Tab>
           <Tabs.Tab title="优势学科" key="bcsrAdv">
-            <ListTable
+            <ListTableSimple
               option={getTableOption({
                 columns: subjectColumns,
                 records: detailsARWU?.details?.bcsr?.subjAdva,
@@ -503,7 +503,7 @@ export function University() {
             </Grid>
           </Tabs.Tab>
           <Tabs.Tab title="所有学科" key="grasAll">
-            <ListTable
+            <ListTableSimple
               option={getTableOption({
                 columns: globalSubjectColumns,
                 records: detailsARWU?.details?.gras?.subjCategory?.map((c) => c.subj)?.flat(),
@@ -513,7 +513,7 @@ export function University() {
             />
           </Tabs.Tab>
           <Tabs.Tab title="优势学科" key="grasAdv">
-            <ListTable
+            <ListTableSimple
               option={getTableOption({
                 columns: globalSubjectColumns,
                 records: detailsARWU?.details?.gras?.subjAdva,
