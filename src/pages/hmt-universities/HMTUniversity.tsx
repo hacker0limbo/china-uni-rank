@@ -17,7 +17,7 @@ import { Card, Rate, Space, Toast, Image, Divider, Grid, Tabs, AutoCenter } from
 import { GlobalOutline, LinkOutline, LocationOutline, RightOutline, StarOutline } from "antd-mobile-icons";
 import queryString from "query-string";
 import { arwuYears, qsLatestYearNid, qsNidToYear, theLatestYear } from "../../constant";
-import { ListTableSimple } from "@visactor/react-vtable";
+import { ListTable } from "@visactor/react-vtable";
 import { type ColumnDefine } from "@visactor/vtable";
 import { formatUSNewsRank, getCnNameFromTranslation, getTableOption } from "../../utils";
 import { useTableTheme } from "../../hooks";
@@ -305,7 +305,7 @@ export function HMTUniversity() {
       >
         <Tabs>
           <Tabs.Tab title="所有学科" key="grasAll">
-            <ListTableSimple
+            <ListTable
               option={getTableOption({
                 columns: globalSubjectColumns,
                 records: hmtDetailsARWU?.detail?.gras?.subjCategory?.map((c) => c.subj)?.flat(),
@@ -315,7 +315,7 @@ export function HMTUniversity() {
             />
           </Tabs.Tab>
           <Tabs.Tab title="优势学科" key="grasAdv">
-            <ListTableSimple
+            <ListTable
               option={getTableOption({
                 columns: globalSubjectColumns,
                 records: hmtDetailsARWU?.detail?.gras?.subjAdva,
