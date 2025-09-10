@@ -3,11 +3,12 @@ import queryString from "query-string";
 import "./interceptors.ts";
 import { proxyAxios } from "./proxy.ts";
 import { qsLatestYearNid, qsNidToYear, theLatestYear, theYearToHash, usnewsCountries, arwuYears } from "../constant";
+import { getARWUHash } from "./init.ts";
 
 // arwu 官网发版的 hash 值, 用于放 在 payload.js 前面,
-// TODO: 需要随时校验
-const ARWU_CN_HASH = "1755079592";
-const ARWU_EN_HASH = "1755221973";
+// NOTE: 目前通过动态获取 hash 了, 可能存在性能问题? 待观察
+// const ARWU_CN_HASH = "1755079592";
+// const ARWU_EN_HASH = "1755221973";
 
 // 软科中文站地址
 export const ARWU_BASE_URL = "https://www.shanghairanking.cn";
@@ -55,14 +56,15 @@ type HMTInstitutionUnivARWUResponse = {
 };
 
 // 获取港澳台具体某个大学的详细信息
-export function getHMTUnivDetailsFromARWU(univUp: string): Promise<HMTInstitutionUnivARWUResponse> {
+export async function getHMTUnivDetailsFromARWU(univUp: string): Promise<HMTInstitutionUnivARWUResponse> {
+  const hash = await getARWUHash(ARWU_EN_BASE_URL);
   return new Promise((resolve, reject) => {
     // 创建模拟的函数, 拿到高校数据
     (window as any).__NUXT_JSONP__ = function (_url: string, payload: HMTInstitutionUnivARWUResponse) {
       resolve(payload);
     };
     const script = document.createElement("script");
-    script.src = `${ARWU_EN_BASE_URL}/_nuxt/static/${ARWU_EN_HASH}/institution/${univUp}/payload.js`;
+    script.src = `${ARWU_EN_BASE_URL}/_nuxt/static/${hash}/institution/${univUp}/payload.js`;
     script.onload = () => {
       console.log("加载获取某个港澳台高校脚本成功");
       // 移除脚本 避免重复创建
@@ -191,14 +193,16 @@ type InstitutionARWUResponse = {
 };
 
 // 基于软科中文官网获取所有大学列表
-export function getUnivListWithCategories(): Promise<InstitutionARWUResponse> {
+export async function getUnivListWithCategories(): Promise<InstitutionARWUResponse> {
+  const hash = await getARWUHash(ARWU_BASE_URL);
+
   return new Promise((resolve, reject) => {
     // 创建模拟的函数, 拿到高校数据
     (window as any).__NUXT_JSONP__ = function (_url: string, payload: InstitutionARWUResponse) {
       resolve(payload);
     };
     const script = document.createElement("script");
-    script.src = `${ARWU_BASE_URL}/_nuxt/static/${ARWU_CN_HASH}/institution/payload.js`;
+    script.src = `${ARWU_BASE_URL}/_nuxt/static/${hash}/institution/payload.js`;
     script.onload = () => {
       console.log("加载获取所有高校脚本成功");
       // 移除脚本 避免重复创建
@@ -410,14 +414,16 @@ type InstitutionUnivARWUResponse = {
 };
 
 // 基于软科中文官网获取某个大学的详细信息
-export function getUnivDetailsFromARWU(univUp: string): Promise<InstitutionUnivARWUResponse> {
+export async function getUnivDetailsFromARWU(univUp: string): Promise<InstitutionUnivARWUResponse> {
+  const hash = await getARWUHash(ARWU_BASE_URL);
+
   return new Promise((resolve, reject) => {
     // 创建模拟的函数, 拿到高校数据
     (window as any).__NUXT_JSONP__ = function (_url: string, payload: InstitutionUnivARWUResponse) {
       resolve(payload);
     };
     const script = document.createElement("script");
-    script.src = `${ARWU_BASE_URL}/_nuxt/static/${ARWU_CN_HASH}/institution/${univUp}/payload.js`;
+    script.src = `${ARWU_BASE_URL}/_nuxt/static/${hash}/institution/${univUp}/payload.js`;
     script.onload = () => {
       console.log("加载获取某个高校脚本成功");
       // 移除脚本 避免重复创建
@@ -482,14 +488,16 @@ export type ARWUWoldRankingsResponse = {
 };
 
 // 获取软科世界排名
-export function getARWUWoldRankings(year = arwuYears[0]): Promise<ARWUWoldRankingsResponse> {
+export async function getARWUWoldRankings(year = arwuYears[0]): Promise<ARWUWoldRankingsResponse> {
+  const hash = await getARWUHash(ARWU_BASE_URL);
+
   return new Promise((resolve, reject) => {
     // 创建模拟的函数, 拿到高校数据
     (window as any).__NUXT_JSONP__ = function (_url: string, payload: ARWUWoldRankingsResponse) {
       resolve(payload);
     };
     const script = document.createElement("script");
-    script.src = `${ARWU_BASE_URL}/_nuxt/static/${ARWU_CN_HASH}/rankings/arwu/${year}/payload.js`;
+    script.src = `${ARWU_BASE_URL}/_nuxt/static/${hash}/rankings/arwu/${year}/payload.js`;
     script.onload = () => {
       console.log("加载软科世界排名脚本成功");
       // 移除脚本 避免重复创建
