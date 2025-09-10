@@ -7,12 +7,11 @@ const cachedHash: { [key: string]: string } = {};
 // 请求软科中文官网, 然后通过正则拿到其中的 hash 值, 拿不到返回 null
 export function getARWUHash(url: string) {
   if (cachedHash[url]) {
+    Toast.clear();
     return Promise.resolve(cachedHash[url]);
   } else {
     Toast.show({
       content: "初始化中...",
-      duration: 0,
-      maskClickable: false,
       icon: "loading",
     });
 
@@ -29,6 +28,11 @@ export function getARWUHash(url: string) {
         } else {
           return "";
         }
+      })
+      .catch((err) => {
+        console.log("error: 获取 hash 值失败了", err);
+        Toast.clear();
+        return "";
       })
       .finally(() => {
         Toast.clear();
