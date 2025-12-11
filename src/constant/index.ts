@@ -1,7 +1,7 @@
 // 列表页每页显示的高校数量
 export const PAGE_SIZE = 20;
 
-// 软科港澳台地区枚举
+// 软科港澳台地区枚举 TODO: 这里的 value 可能会变更, 需要定期去官网确认
 export const arwuHMTCountryLabels = [
   {
     label: "全部地区",
@@ -9,15 +9,15 @@ export const arwuHMTCountryLabels = [
   },
   {
     label: "中国香港",
-    value: "China-Hong Kong",
+    value: "Hong Kong, China",
   },
   {
     label: "中国澳门",
-    value: "China-Macau",
+    value: "Macau, China",
   },
   {
     label: "中国台湾",
-    value: "China-Taiwan",
+    value: "Taiwan, China",
   },
 ];
 
