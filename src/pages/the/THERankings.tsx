@@ -3,10 +3,11 @@ import { AppOutline, DownFill, EnvironmentOutline, FireFill } from "antd-mobile-
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { getTHEWorldRankings, type THEWorldRanking } from "../../api";
-import { theCountries, PAGE_SIZE, theYearToHash, theLatestYear } from "../../constant";
+import { theCountries, PAGE_SIZE, theYears, theLatestYear } from "../../constant";
 import { Header, SkeletonWrapper } from "../../components";
-import { sleep } from "../../utils";
+import { getCnNameFromTranslation, sleep } from "../../utils";
 import queryString from "query-string";
+import { useUniversityStore } from "../../store";
 
 // 展示所有泰晤士排名的学校
 export function THERankings() {
@@ -17,19 +18,20 @@ export function THERankings() {
   const totalPages = useMemo(() => Math.ceil(theRankings.length / PAGE_SIZE), [theRankings.length]);
   const [showYearPicker, setShowYearPicker] = useState(false);
   // 存的是年份, e.g. 2025
-  const [yearPickerValue, setYearPickerValue] = useState<[keyof typeof theYearToHash]>([theLatestYear]);
+  const [yearPickerValue, setYearPickerValue] = useState<[(typeof theYears)[number]]>([theLatestYear]);
   const [showCountriesPicker, setShowCountriesPicker] = useState(false);
   const [countriesPickerValue, setCountriesPickerValue] = useState<[string]>([theCountries[0]]);
+  const univList = useUniversityStore((state) => state.univList);
   const filteredTHERankings = useMemo(
     () =>
       theRankings.filter((r) =>
-        countriesPickerValue[0] === theCountries[0] ? true : r.location === countriesPickerValue[0]
+        countriesPickerValue[0] === theCountries[0] ? true : r.location === countriesPickerValue[0],
       ),
-    [theRankings, countriesPickerValue]
+    [theRankings, countriesPickerValue],
   );
   const displayedTHERankings = useMemo(
     () => filteredTHERankings.slice(0, currentPage * PAGE_SIZE),
-    [filteredTHERankings, currentPage]
+    [filteredTHERankings, currentPage],
   );
 
   useEffect(() => {
@@ -95,7 +97,10 @@ export function THERankings() {
                       {theUniv.location}
                     </Space>
                   }
-                  description={theUniv.name}
+                  description={
+                    univList?.find((u) => u.nameEn?.toLowerCase() === theUniv.name?.toLowerCase())?.nameCn ??
+                    getCnNameFromTranslation(theUniv.name)
+                  }
                   onClick={() => {
                     const params = {
                       year: yearPickerValue[0],
@@ -131,7 +136,7 @@ export function THERankings() {
       <Picker
         value={yearPickerValue}
         columns={[
-          Object.keys(theYearToHash).map((year) => ({
+          theYears.map((year) => ({
             label: year,
             value: year,
           })),
@@ -144,7 +149,7 @@ export function THERankings() {
         onConfirm={(value) => {
           if (value[0] !== yearPickerValue[0]) {
             setCurrentPage(1);
-            setYearPickerValue(value as [keyof typeof theYearToHash]);
+            setYearPickerValue(value as [(typeof theYears)[number]]);
           }
         }}
       />

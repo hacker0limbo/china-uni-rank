@@ -19,7 +19,7 @@ import queryString from "query-string";
 import { arwuYears, qsLatestYearNid, qsNidToYear, theLatestYear } from "../../constant";
 import { ListTable } from "@visactor/react-vtable";
 import { type ColumnDefine } from "@visactor/vtable";
-import { formatUSNewsRank, getCnNameFromTranslation, getTableOption } from "../../utils";
+import { formatUSNewsRank, getAliasesFromEnName, getCnNameFromTranslation, getTableOption } from "../../utils";
 import { useTableTheme } from "../../hooks";
 import usnews from "../../store/usnews.json";
 
@@ -42,7 +42,6 @@ const globalSubjectColumns: ColumnDefine[] = [
 export function HMTUniversity() {
   const navigate = useLocation()[1];
   const { up } = useParams<{ up: string }>();
-  const initialized = useUniversityStore((state) => state.initialized);
   const [loadingHMTDetailsARWU, setLoadingHMTDetailsARWU] = useState(false);
   const [hmtDetailsARWU, setHMTDetailsARWU] = useState<HMTUniversityARWUDetail | null>(null);
   const favoriteUps = useFavoriteUnivStore((state) => state.favoriteUps);
@@ -54,12 +53,14 @@ export function HMTUniversity() {
   const [loadingQSRankDetails, setLoadingQSRankDetails] = useState(false);
   const [theRankDetails, setTheRankDetails] = useState<THEWorldRanking>();
   const [loadingTheRankDetails, setLoadingTheRankDetails] = useState(false);
-  const usnewsDetails = usnews.find((u) => u.name.toLowerCase() === hmtDetailsARWU?.nameEn?.toLowerCase()) as
-    | USNewsWorldRanking
-    | undefined;
+  const usnewsDetails = usnews.find((u) =>
+    getAliasesFromEnName(hmtDetailsARWU?.nameEn)
+      ?.map((a) => a?.toLowerCase())
+      ?.includes(u.name?.toLowerCase()),
+  ) as USNewsWorldRanking | undefined;
 
   useEffect(() => {
-    if (up && initialized) {
+    if (up) {
       setLoadingHMTDetailsARWU(true);
       getHMTUnivDetailsFromARWU(up)
         .then((res) => {
@@ -76,7 +77,7 @@ export function HMTUniversity() {
           setLoadingHMTDetailsARWU(false);
         });
     }
-  }, [up, initialized]);
+  }, [up]);
 
   useEffect(() => {
     // 只有在查找到对应英文名的情况下才去查 qs 的信息
@@ -109,9 +110,13 @@ export function HMTUniversity() {
 
   useEffect(() => {
     setLoadingTheRankDetails(true);
-    getTHEWorldRankings(theLatestYear, "en")
+    getTHEWorldRankings(theLatestYear)
       .then((res) => {
-        const details = res.data.data?.find((u) => u.name.toLowerCase() === hmtDetailsARWU?.nameEn?.toLowerCase());
+        const details = res.data.data?.find((u) =>
+          getAliasesFromEnName(hmtDetailsARWU?.nameEn)
+            ?.map((a) => a?.toLowerCase())
+            ?.includes(u.name?.toLowerCase()),
+        );
         setTheRankDetails(details);
       })
       .catch(() => {

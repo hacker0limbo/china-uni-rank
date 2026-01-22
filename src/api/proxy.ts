@@ -1,25 +1,8 @@
 import axios from "axios";
 
-/**
- * 专门用于访问 QS 排名趋势的代理, 因为需要带上 x-requested-with header, 极度不稳定
- * proxy 备选地址:
- * https://cors-anywhere.sssc.workers.dev/?
- * https://cors-anywhere.com/
- */
+export const WORKER_URL = "https://china-uni-rank-worker.stephen-yin.workers.dev";
 
-const proxy1 = "https://cors-anywhere.sssc.workers.dev/?";
-const proxy2 = "https://cors-anywhere.com/";
-
-export const proxyAxios = axios.create({
-  headers: {
-    "x-requested-with": "XMLHttpRequest",
-  },
-});
-
-const proxyUrl = proxy2;
-
-// 加上代理的 url
-proxyAxios.interceptors.request.use(function (config) {
-  config.url = `${proxyUrl}${config.url}`;
-  return config;
+// 用于转发请求绕过 cors 限制的 bff 层的 worker
+export const workerAxios = axios.create({
+  baseURL: WORKER_URL,
 });

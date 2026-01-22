@@ -5,17 +5,13 @@ import { persist } from "zustand/middleware";
 export type UniversityStore = {
   univList: UniversityARWU[];
   categoryData: UniversityCategoriesARWU;
-  // 是否完成初始化, 理论上 App.tsx 会在首次加载获取数据以后设置该属性
-  initialized: boolean;
 
   setUnivList: (list: UniversityARWU[]) => void;
   setCategoryData: (data: UniversityCategoriesARWU) => void;
-  setInitialized: (initialized: boolean) => void;
 };
 
 // 高校 store, 由于数据量大使用 zustand 暂时缓存
 export const useUniversityStore = create<UniversityStore>()((set) => ({
-  initialized: false,
   univList: [],
   categoryData: {
     provinces: [],
@@ -27,7 +23,6 @@ export const useUniversityStore = create<UniversityStore>()((set) => ({
 
   setUnivList: (list) => set(() => ({ univList: list })),
   setCategoryData: (data) => set(() => ({ categoryData: data })),
-  setInitialized: (isInitialized) => set(() => ({ initialized: isInitialized })),
 }));
 
 // 港澳台高校的 store
@@ -55,8 +50,8 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: "settings",
-    }
-  )
+    },
+  ),
 );
 
 export type FavoriteUnivStore = {
@@ -77,6 +72,6 @@ export const useFavoriteUnivStore = create<FavoriteUnivStore>()(
     }),
     {
       name: "favorite-universities",
-    }
-  )
+    },
+  ),
 );

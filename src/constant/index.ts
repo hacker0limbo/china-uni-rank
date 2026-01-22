@@ -37,7 +37,7 @@ export const qsNidToYear = {
 
 // 拿到 qs 最新年份的 nid
 export const qsLatestYearNid = Math.max(
-  ...Object.keys(qsNidToYear).map(Number)
+  ...Object.keys(qsNidToYear).map(Number),
 )?.toString() as keyof typeof qsNidToYear;
 
 // qs 排名的国家筛选
@@ -69,20 +69,14 @@ export const qsCountryLabels = [
   },
 ];
 
-// 泰晤士所有国家, NOTE: 这里地区不能修改, 因为是官网的 region 选项
-export const theCountries = ["全部地区", "中国", "中国香港", "台湾", "中国澳门"];
+// 泰晤士排名支持的年份
+export const theYears = ["2025", "2024", "2023"] as const;
 
-// TODO: 这里的 hash 值可能会变, 需要定期去官网查询
-export const theYearToHash = {
-  "2025": "_2025_0__ba2fbd3409733a83fb62c3ee4219487c",
-  "2024": "_2024_0__91239a4509dc50911f1949984e3fb8c5",
-  "2023": "_2023_0__83be12210294c582db8740ee29673120",
-};
+// 泰晤士所有国家
+export const theCountries = ["全部地区", "China", "Hong Kong", "Taiwan", "Macao"];
 
 // 拿最新的年份
-export const theLatestYear = Math.max(
-  ...Object.keys(theYearToHash).map(Number)
-)?.toString() as keyof typeof theYearToHash;
+export const theLatestYear = theYears[0];
 
 export const usnewsCountries = {
   All: "全部地区",

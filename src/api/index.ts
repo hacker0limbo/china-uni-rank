@@ -1,14 +1,8 @@
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 import queryString from "query-string";
 import "./interceptors.ts";
-import { proxyAxios } from "./proxy.ts";
-import { qsLatestYearNid, qsNidToYear, theLatestYear, theYearToHash, usnewsCountries, arwuYears } from "../constant";
-import { getARWUHash } from "./init.ts";
-
-// arwu 官网发版的 hash 值, 用于放 在 payload.js 前面,
-// NOTE: 目前通过动态获取 hash 了, 可能存在性能问题? 待观察
-// const ARWU_CN_HASH = "1755079592";
-// const ARWU_EN_HASH = "1755221973";
+import { WORKER_URL, workerAxios } from "./proxy.ts";
+import { qsLatestYearNid, theYears, usnewsCountries, arwuYears, theLatestYear } from "../constant";
 
 // 软科中文站地址
 export const ARWU_BASE_URL = "https://www.shanghairanking.cn";
@@ -57,21 +51,21 @@ type HMTInstitutionUnivARWUResponse = {
 
 // 获取港澳台具体某个大学的详细信息
 export async function getHMTUnivDetailsFromARWU(univUp: string): Promise<HMTInstitutionUnivARWUResponse> {
-  const hash = await getARWUHash(ARWU_EN_BASE_URL);
   return new Promise((resolve, reject) => {
-    // 创建模拟的函数, 拿到高校数据
-    (window as any).__NUXT_JSONP__ = function (_url: string, payload: HMTInstitutionUnivARWUResponse) {
+    // 创建模拟的函数, 拿到高校数据, arwu_uni_hmt_detail 为自定义的函数名, 替换掉 __NUXT_JSONP__ 防止重复
+    (window as any).arwu_uni_hmt_detail = function (_url: string, payload: HMTInstitutionUnivARWUResponse) {
       resolve(payload);
     };
     const script = document.createElement("script");
-    script.src = `${ARWU_EN_BASE_URL}/_nuxt/static/${hash}/institution/${univUp}/payload.js`;
+    script.src = `${WORKER_URL}/arwu/uni/hmt/${univUp}`;
+    console.log("脚本", script.src);
     script.onload = () => {
-      console.log("加载获取某个港澳台高校脚本成功");
+      console.log(`加载获取${univUp}港澳台高校脚本成功`);
       // 移除脚本 避免重复创建
       document.body.removeChild(script);
     };
     script.onerror = (err) => {
-      console.log("加载获取某个港澳台高校脚本失败");
+      console.log(`加载获取${univUp}港澳台高校脚本失败`);
       document.body.removeChild(script);
       reject(err);
     };
@@ -103,9 +97,7 @@ export type HMTUniversityARWUListResponse = {
 // 获取所有港澳台地区高校
 export function getHMTUnivList() {
   // query string 直接写死, 因为不支持多地区参数查询, 直接一次性查所有数据
-  return axios.get<HMTUniversityARWUListResponse>(
-    `${ARWU_EN_BASE_URL}/api/pub/v1/inst?name_en=&region=&limit=&random=false`
-  );
+  return workerAxios.get<HMTUniversityARWUListResponse>("/arwu/uni/hmt");
 }
 
 // 大学列表的分类数据
@@ -194,22 +186,20 @@ type InstitutionARWUResponse = {
 
 // 基于软科中文官网获取所有大学列表
 export async function getUnivListWithCategories(): Promise<InstitutionARWUResponse> {
-  const hash = await getARWUHash(ARWU_BASE_URL);
-
   return new Promise((resolve, reject) => {
     // 创建模拟的函数, 拿到高校数据
-    (window as any).__NUXT_JSONP__ = function (_url: string, payload: InstitutionARWUResponse) {
+    (window as any).arwu_uni_cn_list = function (_url: string, payload: InstitutionARWUResponse) {
       resolve(payload);
     };
     const script = document.createElement("script");
-    script.src = `${ARWU_BASE_URL}/_nuxt/static/${hash}/institution/payload.js`;
+    script.src = `${WORKER_URL}/arwu/uni/cn`;
     script.onload = () => {
-      console.log("加载获取所有高校脚本成功");
+      console.log("加载获取所有大陆高校脚本成功");
       // 移除脚本 避免重复创建
       document.body.removeChild(script);
     };
     script.onerror = (err) => {
-      console.log("加载获取所有高校脚本失败");
+      console.log("加载获取所有大陆高校脚本失败");
       document.body.removeChild(script);
       reject(err);
     };
@@ -364,7 +354,7 @@ export type UniversityARWUDetail = {
             // 专业评级
             grade: string;
           }[];
-        }
+        },
       ];
       // 优势专业
       majorAdva: {
@@ -415,22 +405,20 @@ type InstitutionUnivARWUResponse = {
 
 // 基于软科中文官网获取某个大学的详细信息
 export async function getUnivDetailsFromARWU(univUp: string): Promise<InstitutionUnivARWUResponse> {
-  const hash = await getARWUHash(ARWU_BASE_URL);
-
   return new Promise((resolve, reject) => {
     // 创建模拟的函数, 拿到高校数据
-    (window as any).__NUXT_JSONP__ = function (_url: string, payload: InstitutionUnivARWUResponse) {
+    (window as any).arwu_uni_cn_detail = function (_url: string, payload: InstitutionUnivARWUResponse) {
       resolve(payload);
     };
     const script = document.createElement("script");
-    script.src = `${ARWU_BASE_URL}/_nuxt/static/${hash}/institution/${univUp}/payload.js`;
+    script.src = `${WORKER_URL}/arwu/uni/cn/${univUp}`;
     script.onload = () => {
-      console.log("加载获取某个高校脚本成功");
+      console.log(`加载获取${univUp}高校脚本成功`);
       // 移除脚本 避免重复创建
       document.body.removeChild(script);
     };
     script.onerror = (err) => {
-      console.log("加载获取某个高校脚本失败");
+      console.log(`加载获取${univUp}高校脚本失败`);
       document.body.removeChild(script);
       reject(err);
     };
@@ -481,7 +469,7 @@ export type ARWUWoldRankingsResponse = {
       // 所有地区
       regionList: { name: string; value: string }[];
       univData: ARWUWoldRanking[];
-    }
+    },
   ];
   fetch: object;
   mutations: [];
@@ -489,27 +477,7 @@ export type ARWUWoldRankingsResponse = {
 
 // 获取软科世界排名
 export async function getARWUWoldRankings(year = arwuYears[0]): Promise<ARWUWoldRankingsResponse> {
-  const hash = await getARWUHash(ARWU_BASE_URL);
-
-  return new Promise((resolve, reject) => {
-    // 创建模拟的函数, 拿到高校数据
-    (window as any).__NUXT_JSONP__ = function (_url: string, payload: ARWUWoldRankingsResponse) {
-      resolve(payload);
-    };
-    const script = document.createElement("script");
-    script.src = `${ARWU_BASE_URL}/_nuxt/static/${hash}/rankings/arwu/${year}/payload.js`;
-    script.onload = () => {
-      console.log("加载软科世界排名脚本成功");
-      // 移除脚本 避免重复创建
-      document.body.removeChild(script);
-    };
-    script.onerror = (err) => {
-      console.log("加载软科世界排名脚本失败");
-      document.body.removeChild(script);
-      reject(err);
-    };
-    document.body.appendChild(script);
-  });
+  return workerAxios.get(`/arwu/rank/${year}`);
 }
 
 // qs 排名
@@ -598,8 +566,8 @@ export function getQSWorldRankings(options: QSWorldRankingsRequestOptions) {
     // 默认查询中国香港、澳门、台湾和大陆的高校
     countries: ["cn", "hk", "tw", "mo"],
   };
-  return axios.get<QSWorldRankingsResponse>(
-    `${QS_BASE_URL}/rankings/endpoint?${queryString.stringify(
+  return workerAxios.get<QSWorldRankingsResponse>(
+    `qs/rank?${queryString.stringify(
       { ...defaultOptions, ...options },
       {
         arrayFormat: "comma",
@@ -607,8 +575,8 @@ export function getQSWorldRankings(options: QSWorldRankingsRequestOptions) {
         skipNull: true,
         // 禁止对 key 排序, 否则会导致请求失败
         sort: false,
-      }
-    )}`
+      },
+    )}`,
   );
 }
 
@@ -635,12 +603,12 @@ export type QSUnivRankTrendResponse = {
 
 // qs 世界排名趋势
 export function getQSUnivRankTrend(coreId: string) {
-  return proxyAxios.get<QSUnivRankTrendResponse>(`${QS_BASE_URL}/qs-profiles/rank-data/513/${coreId}/0`);
+  return workerAxios.get<QSUnivRankTrendResponse>(`/qs/rank/world-trend/${coreId}`);
 }
 
 // qs 亚洲排名趋势
 export function getQSUnivRankTrendAsian(coreId: string) {
-  return proxyAxios.get<QSUnivRankTrendResponse>(`${QS_BASE_URL}/qs-profiles/rank-data/514/${coreId}/0`);
+  return workerAxios.get<QSUnivRankTrendResponse>(`qs/rank/asian-trend/${coreId}`);
 }
 
 // 泰晤士排名
@@ -729,20 +697,24 @@ export type THEUnivRankTrendResponse = {
 };
 
 // 获取泰晤士所有世界排名
-export function getTHEWorldRankings(year: keyof typeof theYearToHash = theLatestYear, lang = "cn") {
-  // 这里注意一下, 默认是获取中文站点的数据, 但是港澳台 univ 的页面需要通过英文名来匹配, 这里拓展一下
-  const url =
-    lang === "en"
-      ? `${THE_BASE_URL}/sites/default/files/the_data_rankings/world_university_rankings${theYearToHash[year]}.json`
-      : `${THE_BASE_URL}/cn/json/rankings/world_university_rankings${theYearToHash[year]}.json`;
+export function getTHEWorldRankings(year: (typeof theYears)[number] = theLatestYear) {
   // 默认拿最新一年的数据
-  return axios.get<THEWorldRankingsResponse>(url);
+  return workerAxios.get<THEWorldRankingsResponse>(`/the/rank/${year}`);
 }
 
-export function getTHEUnivRankTrend(nid: string) {
-  return axios.get<THEUnivRankTrendResponse>(
-    `${THE_BASE_URL}/sites/default/files/university/rankings/${nid}-zh-hans.json`
-  );
+export function getTHEUnivRankTrend(nid: string): Promise<AxiosResponse<THEUnivRankTrendResponse>> {
+  // @ts-ignore
+  return Promise.resolve({
+    data: {
+      rankingSchema: [],
+      config: [],
+      data: [],
+    },
+    status: 200,
+    statusText: "OK",
+    headers: {},
+    config: {},
+  });
 }
 
 // USNews
@@ -774,7 +746,7 @@ export type USNewsWorldRanking = {
       is_ranked: false;
       // string 排名类型, e.g. "Best Global Universities"
       label: string;
-    }
+    },
   ];
   // 一些数据, e.g. { value: "100", label: "Global Score" }
   stats: {
@@ -806,12 +778,12 @@ export function getUSNewsWorldRankings(options?: USNewsWorldRankingOptions) {
         skipEmptyString: true,
         skipNull: true,
         sort: false,
-      }
+      },
     )}`,
     {
       headers: {
         referrer: "https://www.usnews.com/",
       },
-    }
+    },
   );
 }

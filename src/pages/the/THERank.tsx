@@ -30,12 +30,14 @@ import {
   getTHEUnivRankTrend,
   type THEUnivRankTrendItem,
 } from "../../api";
-import { theYearToHash } from "../../constant";
+import { theYears } from "../../constant";
 import { CardExtraInfo, Header, RankLogo, Score, ScoreBarChart, SkeletonWrapper } from "../../components";
 import { pickBy } from "lodash-es";
+import { useUniversityStore } from "../../store";
+import { getCnNameFromTranslation } from "../../utils";
 
 type TheRankParams = {
-  year: keyof typeof theYearToHash;
+  year: (typeof theYears)[number];
   nid: string;
 };
 
@@ -83,14 +85,14 @@ export function THERank() {
     () =>
       pickBy(
         rankDetails,
-        (_value, key) => key.startsWith("scores_") && !key.endsWith("_rank") && key !== "scores_overall"
+        (_value, key) => key.startsWith("scores_") && !key.endsWith("_rank") && key !== "scores_overall",
       ) as Record<string, string>,
-    [rankDetails]
+    [rankDetails],
   );
   // 形如 stats_number_students 的属性为统计数据
   const currentYearStats = useMemo(
     () => pickBy(rankDetails, (_value, key) => key.startsWith("stats_")) as Record<string, string>,
-    [rankDetails]
+    [rankDetails],
   );
   // 获取不同类型的排名趋势
   const [rankTrends, setRankTrends] = useState<THEUnivRankTrendItem[]>([]);
@@ -98,6 +100,15 @@ export function THERank() {
   // 在趋势 steps 选中的年份
   const [selectedRankTrendYear, setSelectedRankTrendYear] = useState<string>(year);
   const [yearScoreMode, setYearScoreMode] = useState<string>("circles");
+  const univList = useUniversityStore((state) => state.univList);
+
+  // 学校中文名
+  const nameCn = useMemo(() => {
+    return (
+      univList?.find((u) => u.nameEn?.toLowerCase() === rankDetails?.name?.toLowerCase())?.nameCn ??
+      getCnNameFromTranslation(rankDetails?.name)
+    );
+  }, [rankDetails?.name, univList]);
 
   useEffect(() => {
     if (year && nid) {
@@ -163,7 +174,7 @@ export function THERank() {
       >
         <SkeletonWrapper loading={loadingRankDetails} showTitle lineCount={2}>
           <Space direction="vertical" style={{ "--gap-horizontal": "4px" }}>
-            <div style={{ fontSize: 18, fontWeight: "bold" }}>{rankDetails?.name}</div>
+            <div style={{ fontSize: 18, fontWeight: "bold" }}>{nameCn}</div>
             <div style={{ fontSize: 14, color: "var(--adm-color-weak)" }}>{rankDetails?.location}</div>
           </Space>
         </SkeletonWrapper>

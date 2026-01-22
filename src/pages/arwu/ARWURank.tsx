@@ -31,7 +31,6 @@ export function ARWURank() {
   } = queryString.parse(window.location.hash.split("?")[1], { parseBooleans: true }) as ARWURankParams;
   const [rankDetails, setRankDetails] = useState<ARWUWoldRanking>();
   const [indicators, setIndicators] = useState<ARWUWoldRankingsResponse["data"][0]["indList"]>([]);
-  const initialized = useUniversityStore((state) => state.initialized);
   const [rankTrends, setRankTrends] = useState<Partial<Pick<UniversityARWUDetail["details"], "arwu" | "bcur">>>();
   const theme = useSettingsStore((state) => state.theme);
   // 展示形式, 默认使用 steps 展示, 枚举为 steps/chart
@@ -39,23 +38,21 @@ export function ARWURank() {
   const [yearScoreMode, setYearScoreMode] = useState<string>("circles");
 
   useEffect(() => {
-    if (initialized) {
-      getARWUWoldRankings(year)
-        .then((res) => {
-          const data = res.data?.[0];
-          // 只存储中国内地和港澳台的高校
-          setRankDetails(data?.univData?.find((u) => u.univUp === up || u.univUpEn === up));
-          setIndicators(data?.indList ?? []);
-        })
-        .catch((err) => {
-          console.error("报错了", err);
-          Toast.show({
-            icon: "fail",
-            content: "获取该学校软科排名数据失败了...",
-          });
+    getARWUWoldRankings(year)
+      .then((res) => {
+        const data = res.data?.[0];
+        // 只存储中国内地和港澳台的高校
+        setRankDetails(data?.univData?.find((u) => u.univUp === up || u.univUpEn === up));
+        setIndicators(data?.indList ?? []);
+      })
+      .catch((err) => {
+        console.error("报错了", err);
+        Toast.show({
+          icon: "fail",
+          content: "获取该学校软科排名数据失败了...",
         });
-    }
-  }, [year, initialized, up]);
+      });
+  }, [year, up]);
 
   useEffect(() => {
     // 获取到 rankDetails 以后再去获取这个学校的 trend 数据
@@ -175,7 +172,7 @@ export function ARWURank() {
             categories={[
               "综合得分",
               ...Object.keys(rankDetails?.indData ?? {}).map(
-                (ind) => indicators.find((i) => i.code === ind)?.nameCn || ind
+                (ind) => indicators.find((i) => i.code === ind)?.nameCn || ind,
               ),
             ]}
             values={[rankDetails?.score, ...Object.values(rankDetails?.indData ?? {})]}

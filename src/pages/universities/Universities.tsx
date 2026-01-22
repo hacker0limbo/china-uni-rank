@@ -1,4 +1,3 @@
-import { getUnivListWithCategories } from "../../api";
 import { useCallback, useState, useMemo, useRef } from "react";
 import {
   SearchBar,
@@ -60,7 +59,7 @@ export function Universities() {
   // 最终页面上展示的高校列表
   const displayedUnivList = useMemo(
     () => filteredUnivList.slice(0, currentPage * PAGE_SIZE),
-    [filteredUnivList, currentPage]
+    [filteredUnivList, currentPage],
   );
   // 收藏
   const favoriteUps = useFavoriteUnivStore((state) => state.favoriteUps);

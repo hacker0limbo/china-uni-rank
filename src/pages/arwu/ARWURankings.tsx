@@ -13,7 +13,6 @@ export function ARWURankings() {
   const navigate = useLocation()[1];
   // 排名数据
   const [arwuRankings, setARWURankings] = useState<ARWUWoldRanking[]>([]);
-  const initialized = useUniversityStore((state) => state.initialized);
   const [loading, setLoading] = useState<boolean>(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [yearPickerValue, setYearPickerValue] = useState<[string]>([arwuYears[0]]);
@@ -22,36 +21,34 @@ export function ARWURankings() {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const filteredRankings = useMemo(() => {
     return arwuRankings.filter((r) =>
-      countriesPickerValue[0] === arwuCountries[0] ? true : r.region === countriesPickerValue[0]
+      countriesPickerValue[0] === arwuCountries[0] ? true : r.region === countriesPickerValue[0],
     );
   }, [arwuRankings, countriesPickerValue]);
   const totalPages = useMemo(() => Math.ceil(filteredRankings.length / PAGE_SIZE), [filteredRankings.length]);
   const displayedRankings = useMemo(
     () => filteredRankings.slice(0, currentPage * PAGE_SIZE),
-    [filteredRankings, currentPage]
+    [filteredRankings, currentPage],
   );
 
   useEffect(() => {
-    if (initialized) {
-      setLoading(true);
-      getARWUWoldRankings(yearPickerValue[0])
-        .then((res) => {
-          const data = res.data?.[0];
-          // 只存储中国内地和港澳台的高校
-          setARWURankings(data?.univData?.filter((u) => arwuCountries.includes(u.region)) || []);
-        })
-        .catch((err) => {
-          console.error("报错了", err);
-          Toast.show({
-            icon: "fail",
-            content: "获取软科排名数据失败了...",
-          });
-        })
-        .finally(() => {
-          setLoading(false);
+    setLoading(true);
+    getARWUWoldRankings(yearPickerValue[0])
+      .then((res) => {
+        const data = res.data?.[0];
+        // 只存储中国内地和港澳台的高校
+        setARWURankings(data?.univData?.filter((u) => arwuCountries.includes(u.region)) || []);
+      })
+      .catch((err) => {
+        console.error("报错了", err);
+        Toast.show({
+          icon: "fail",
+          content: "获取软科排名数据失败了...",
         });
-    }
-  }, [yearPickerValue, initialized]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [yearPickerValue]);
 
   return (
     <>

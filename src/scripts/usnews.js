@@ -1,3 +1,7 @@
+/**
+ * @deprecated 此脚本已废弃, 获取数据改为在 worker 里完成
+ */
+
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -21,7 +25,7 @@ function getUSNewsWorldRankingsData(page = 1) {
       },
       body: null,
       method: "GET",
-    }
+    },
   )
     .then((res) => res.json())
     .then((data) => {

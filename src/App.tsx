@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { TabBar, Toast, SafeArea } from "antd-mobile";
 import { AppOutline, SetOutline } from "antd-mobile-icons";
 import { Router, Switch, Route } from "wouter";
@@ -19,38 +19,65 @@ import { arwuHMTCountryLabels } from "./constant";
 
 Toast.config({
   duration: 1000,
+  maskClickable: false,
 });
 
 function App() {
   const [location, navigate] = useHashLocation();
-  const { setUnivList, setCategoryData, setInitialized } = useUniversityStore();
+  const { setUnivList, setCategoryData } = useUniversityStore();
   const { setHMTUnivList } = useHMTUniversityStore();
   const showTabBar = useMemo(() => location === "/" || location.startsWith("/settings"), [location]);
   const theme = useSettingsStore((state) => state.theme);
+  const [loadingUnivList, setLoadingUnivList] = useState(false);
+  const [loadingHMTUnivList, setLoadingHMTUnivList] = useState(false);
 
   useEffect(() => {
-    getUnivListWithCategories().then((res) => {
-      const { univList, categoryData } = res?.data?.[0] ?? {};
-      console.log("获取到高校数据了~~~~");
-      // 只保留本科学校, 其他学校不关心
-      setUnivList(univList.filter((univ) => univ.eduLevel === 10));
-      setCategoryData(categoryData);
-      setInitialized(true);
-    });
-  }, [setCategoryData, setUnivList, setInitialized]);
+    // 获取大陆高校数据
+    setLoadingUnivList(true);
+    getUnivListWithCategories()
+      .then((res) => {
+        const { univList, categoryData } = res?.data?.[0] ?? {};
+        // 只保留本科学校, 其他学校不关心
+        setUnivList(univList.filter((univ) => univ.eduLevel === 10));
+        setCategoryData(categoryData);
+      })
+      .finally(() => {
+        setLoadingUnivList(false);
+      });
+  }, [setCategoryData, setUnivList]);
 
   useEffect(() => {
-    getHMTUnivList().then((res) => {
-      console.log("获取到所有港澳台高校数据了~~~~");
-      const allHMTCountries = arwuHMTCountryLabels.map((c) => c.value);
-      setHMTUnivList(res.data?.data?.filter((univ) => allHMTCountries.includes(univ.region)));
-    });
+    // 获取港澳台高校数据
+    setLoadingHMTUnivList(true);
+    getHMTUnivList()
+      .then((res) => {
+        console.log("获取到所有港澳台高校数据了~~~~");
+        const allHMTCountries = arwuHMTCountryLabels.map((c) => c.value);
+        setHMTUnivList(res.data?.data?.filter((univ) => allHMTCountries.includes(univ.region)));
+      })
+      .finally(() => {
+        setLoadingHMTUnivList(false);
+      });
   }, [setHMTUnivList]);
 
   useEffect(() => {
     // 根据状态设置主题
     document.documentElement.setAttribute("data-prefers-color-scheme", theme === "dark" ? "dark" : "light");
   }, [theme]);
+
+  useEffect(() => {
+    if (loadingUnivList || loadingHMTUnivList) {
+      Toast.show({
+        content: "加载数据中",
+        icon: "loading",
+        // 一直显示 loading
+        duration: 0,
+      });
+    } else {
+      // 手动清除
+      Toast.clear();
+    }
+  });
 
   return (
     <>

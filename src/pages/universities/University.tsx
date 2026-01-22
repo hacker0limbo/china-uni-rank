@@ -105,7 +105,6 @@ const globalSubjectColumns: ColumnDefine[] = [
 export function University() {
   const navigate = useLocation()[1];
   const { up } = useParams<{ up: string }>();
-  const initialized = useUniversityStore((state) => state.initialized);
   const categoryData = useUniversityStore((state) => state.categoryData);
   const [loadingDetailsARWU, setLoadingDetailsARWU] = useState(false);
   const [detailsARWU, setDetailsARWU] = useState<UniversityARWUDetail | null>(null);
@@ -124,7 +123,7 @@ export function University() {
   const isFavorite = useMemo(() => favoriteUps?.map((u) => u.up)?.includes(up), [favoriteUps, up]);
 
   useEffect(() => {
-    if (up && initialized) {
+    if (up) {
       setLoadingDetailsARWU(true);
       getUnivDetailsFromARWU(up)
         .then((res) => {
@@ -141,7 +140,7 @@ export function University() {
           setLoadingDetailsARWU(false);
         });
     }
-  }, [up, initialized]);
+  }, [up]);
 
   useEffect(() => {
     // 只有在查找到对应英文名的情况下才去查 qs 的信息
@@ -176,8 +175,8 @@ export function University() {
     setLoadingTheRankDetails(true);
     getTHEWorldRankings()
       .then((res) => {
-        // 直接根据中文名字匹配泰晤士学校
-        const details = res.data.data?.find((u) => u.name === detailsARWU?.nameCn);
+        // 直接根据英文名字匹配泰晤士学校
+        const details = res.data.data?.find((u) => u.name?.toLowerCase() === detailsARWU?.nameEn?.toLowerCase());
         setTheRankDetails(details);
       })
       .catch(() => {
@@ -189,7 +188,7 @@ export function University() {
       .finally(() => {
         setLoadingTheRankDetails(false);
       });
-  }, [detailsARWU?.nameCn]);
+  }, [detailsARWU?.nameEn]);
 
   return (
     <div style={{ overflowY: "auto" }}>

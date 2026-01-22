@@ -5,6 +5,9 @@ import { Toast } from "antd-mobile";
 const cachedHash: { [key: string]: string } = {};
 
 // 请求软科中文官网, 然后通过正则拿到其中的 hash 值, 拿不到返回 null
+/**
+ * @deprecated hash 获取的过程改为从 worker 里获取, 该方法不再使用
+ */
 export function getARWUHash(url: string) {
   if (cachedHash[url]) {
     Toast.clear();

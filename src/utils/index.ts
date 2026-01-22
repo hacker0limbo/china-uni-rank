@@ -124,3 +124,9 @@ export function getTableOption(option: ListTableConstructorOptions): ListTableCo
 export function getCnNameFromTranslation(nameEn?: string) {
   return hmt.find((item) => item.nameEn.toLowerCase() === nameEn?.toLowerCase())?.nameCn || nameEn;
 }
+
+// 根据学校的英文名获取可能存在的所有别名, 包括传过来的英文名
+export function getAliasesFromEnName(nameEn?: string) {
+  const aliases = hmt.find((item) => item.nameEn.toLowerCase() === nameEn?.toLowerCase())?.nameEnAliases;
+  return [nameEn, ...(aliases || [])];
+}
