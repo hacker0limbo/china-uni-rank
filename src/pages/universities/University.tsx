@@ -29,6 +29,7 @@ import {
   getQSUnivRankTrend,
   getTHEUnivRankTrend,
   getTHEWorldRankings,
+  getUSNewsWorldRankings,
   type QSUnivRankByYear,
   type QSWorldRanking,
   type THEUnivRankTrendItem,
@@ -40,7 +41,6 @@ import { getUnivDetailsFromARWU, type UniversityARWUDetail, getQSWorldRankings }
 import { Header, QSRankStepsWithLogo, RankLogo, Score, SkeletonWrapper } from "../../components";
 import { qsNidToYear, qsLatestYearNid, theLatestYear, arwuYears } from "../../constant";
 import queryString from "query-string";
-import usnews from "../../store/usnews.json";
 import { formatUSNewsRank, getTableOption } from "../../utils";
 import { ListTable } from "@visactor/react-vtable";
 import { type ColumnDefine } from "@visactor/vtable";
@@ -112,9 +112,10 @@ export function University() {
   const [loadingQSRankDetails, setLoadingQSRankDetails] = useState(false);
   const [theRankDetails, setTheRankDetails] = useState<THEWorldRanking>();
   const [loadingTheRankDetails, setLoadingTheRankDetails] = useState(false);
-  const usnewsDetails = usnews.find((u) => u.name.toLowerCase() === detailsARWU?.nameEn?.toLowerCase()) as
-    | USNewsWorldRanking
-    | undefined;
+  const [usnewsWorldRankings, setUSNewsWorldRankings] = useState<USNewsWorldRanking[]>([]);
+  const [loadingUsnews, setLoadingUsnews] = useState(false);
+  const usnewsDetails = usnewsWorldRankings.find((u) => u.name.toLowerCase() === detailsARWU?.nameEn?.toLowerCase());
+
   const tableTheme = useTableTheme();
   // 收藏
   const favoriteUps = useFavoriteUnivStore((state) => state.favoriteUps);
@@ -189,6 +190,24 @@ export function University() {
         setLoadingTheRankDetails(false);
       });
   }, [detailsARWU?.nameEn]);
+
+  useEffect(() => {
+    setLoadingUsnews(true);
+    getUSNewsWorldRankings()
+      .then((res) => {
+        setUSNewsWorldRankings(res.data);
+      })
+      .catch((err) => {
+        Toast.show({
+          icon: "fail",
+          content: "获取 USNEWS 排名数据失败了...",
+        });
+      })
+
+      .finally(() => {
+        setLoadingUsnews(false);
+      });
+  }, []);
 
   return (
     <div style={{ overflowY: "auto" }}>
@@ -376,18 +395,20 @@ export function University() {
           </Tabs.Tab>
 
           <Tabs.Tab title="USNews" key="usnews">
-            <AutoCenter>
-              <div
-                style={{ fontSize: 20, fontWeight: "bold", margin: "12px 0" }}
-                onClick={() => {
-                  if (usnewsDetails?.ranks?.length) {
-                    navigate(`/usnews/${usnewsDetails?.id}`);
-                  }
-                }}
-              >
-                USNews 世界大学排名 <RightOutline fontSize={16} />
-              </div>
-            </AutoCenter>
+            <SkeletonWrapper loading={loadingUsnews}>
+              <AutoCenter>
+                <div
+                  style={{ fontSize: 20, fontWeight: "bold", margin: "12px 0" }}
+                  onClick={() => {
+                    if (usnewsDetails?.ranks?.length) {
+                      navigate(`/usnews/${usnewsDetails?.id}`);
+                    }
+                  }}
+                >
+                  USNews 世界大学排名 <RightOutline fontSize={16} />
+                </div>
+              </AutoCenter>
+            </SkeletonWrapper>
             <RankLogo color="var(--adm-color-primary)" rankInfo={formatUSNewsRank(usnewsDetails?.ranks)} />
           </Tabs.Tab>
         </Tabs>

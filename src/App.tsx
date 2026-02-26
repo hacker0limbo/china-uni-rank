@@ -19,7 +19,7 @@ import { arwuHMTCountryLabels } from "./constant";
 
 Toast.config({
   duration: 1000,
-  maskClickable: false,
+  // maskClickable: false,
 });
 
 function App() {
@@ -31,11 +31,14 @@ function App() {
   const [loadingUnivList, setLoadingUnivList] = useState(false);
   const [loadingHMTUnivList, setLoadingHMTUnivList] = useState(false);
 
+  console.log("loading, ", loadingUnivList, loadingHMTUnivList);
+
   useEffect(() => {
     // 获取大陆高校数据
     setLoadingUnivList(true);
     getUnivListWithCategories()
       .then((res) => {
+        console.log("获取到所有国内高校数据了~~~~");
         const { univList, categoryData } = res?.data?.[0] ?? {};
         // 只保留本科学校, 其他学校不关心
         setUnivList(univList.filter((univ) => univ.eduLevel === 10));
@@ -77,7 +80,14 @@ function App() {
       // 手动清除
       Toast.clear();
     }
-  });
+  }, [loadingHMTUnivList, loadingUnivList]);
+
+  // 粗糙的写一个定时器, 8s 以后如果还在 loading 的话强制关闭 loading
+  useEffect(() => {
+    setTimeout(() => {
+      Toast.clear();
+    }, 8000);
+  }, []);
 
   return (
     <>

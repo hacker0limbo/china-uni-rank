@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getQSWorldRankings, type QSWorldRanking } from "../../api";
+import { getQSWorldRankings, QS_CN_BASE_URL, type QSWorldRanking } from "../../api";
 import { Card, Space, Toast, Grid, Dropdown, List, Image, ErrorBlock, InfiniteScroll, Picker } from "antd-mobile";
 import { AppOutline, DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
 import { useLocation } from "wouter";
@@ -55,7 +55,7 @@ export function QSRankings() {
           setLoadingQSRankings(false);
         });
     },
-    [countryToFilter, yearPickerValue]
+    [countryToFilter, yearPickerValue],
   );
 
   const resetFilter = () => {
@@ -107,7 +107,15 @@ export function QSRankings() {
               <List.Item
                 key={qsUniv.core_id}
                 prefix={
-                  <Image lazy referrerPolicy="no-referrer" src={qsUniv.logo} fit="cover" width={40} height={40} />
+                  <Image
+                    lazy
+                    referrerPolicy="no-referrer"
+                    // TODO: 这里由于 qs 官方开启了 cf 的拦截, 无法直接使用他们的图片, 这里改用中文站的图片, 但是存在部分高校图片地址和主站不同, e.g. 香港大学
+                    src={`${QS_CN_BASE_URL}${new URL(qsUniv.logo).pathname}`}
+                    fit="cover"
+                    width={40}
+                    height={40}
+                  />
                 }
                 extra={
                   <Space style={{ "--gap-horizontal": "4px" }}>

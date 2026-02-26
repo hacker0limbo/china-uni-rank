@@ -120,13 +120,20 @@ export function getTableOption(option: ListTableConstructorOptions): ListTableCo
   return merge({}, defaultTableOption, option);
 }
 
-// 根据英文名和翻译配置得到高校的中文名
-export function getCnNameFromTranslation(nameEn?: string) {
-  return hmt.find((item) => item.nameEn.toLowerCase() === nameEn?.toLowerCase())?.nameCn || nameEn;
-}
-
 // 根据学校的英文名获取可能存在的所有别名, 包括传过来的英文名
 export function getAliasesFromEnName(nameEn?: string) {
   const aliases = hmt.find((item) => item.nameEn.toLowerCase() === nameEn?.toLowerCase())?.nameEnAliases;
   return [nameEn, ...(aliases || [])];
+}
+
+// 根据英文名和翻译配置得到高校的中文名
+export function getCnNameFromTranslation(nameEn?: string) {
+  return (
+    hmt.find((item) =>
+      // 得到所有英文 alias 后进行对比
+      getAliasesFromEnName(item.nameEn)
+        ?.map((a) => a?.toLowerCase())
+        .includes(nameEn?.toLowerCase()),
+    )?.nameCn || nameEn
+  );
 }

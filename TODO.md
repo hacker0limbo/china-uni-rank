@@ -13,3 +13,5 @@ TODOS:
 - [ ] 公共代码复用
 - [ ] 路由替换成 react-router
 - [ ] 缓存四大排名到 store 中
+- [ ] 请求库改为 useSWR
+- [ ] 配合 dify 实现自己的 agent 对话

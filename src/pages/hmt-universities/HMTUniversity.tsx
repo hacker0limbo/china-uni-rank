@@ -12,6 +12,7 @@ import {
   getHMTUnivDetailsFromARWU,
   getQSWorldRankings,
   getTHEWorldRankings,
+  getUSNewsWorldRankings,
 } from "../../api";
 import { Card, Rate, Space, Toast, Image, Divider, Grid, Tabs, AutoCenter } from "antd-mobile";
 import { GlobalOutline, LinkOutline, LocationOutline, RightOutline, StarOutline } from "antd-mobile-icons";
@@ -21,7 +22,6 @@ import { ListTable } from "@visactor/react-vtable";
 import { type ColumnDefine } from "@visactor/vtable";
 import { formatUSNewsRank, getAliasesFromEnName, getCnNameFromTranslation, getTableOption } from "../../utils";
 import { useTableTheme } from "../../hooks";
-import usnews from "../../store/usnews.json";
 
 // 软科世界一流学科排名
 const globalSubjectColumns: ColumnDefine[] = [
@@ -53,7 +53,9 @@ export function HMTUniversity() {
   const [loadingQSRankDetails, setLoadingQSRankDetails] = useState(false);
   const [theRankDetails, setTheRankDetails] = useState<THEWorldRanking>();
   const [loadingTheRankDetails, setLoadingTheRankDetails] = useState(false);
-  const usnewsDetails = usnews.find((u) =>
+  const [usnewsWorldRankings, setUSNewsWorldRankings] = useState<USNewsWorldRanking[]>([]);
+  const [loadingUsnews, setLoadingUsnews] = useState(false);
+  const usnewsDetails = usnewsWorldRankings.find((u) =>
     getAliasesFromEnName(hmtDetailsARWU?.nameEn)
       ?.map((a) => a?.toLowerCase())
       ?.includes(u.name?.toLowerCase()),
@@ -129,6 +131,24 @@ export function HMTUniversity() {
         setLoadingTheRankDetails(false);
       });
   }, [hmtDetailsARWU?.nameEn]);
+
+  useEffect(() => {
+    setLoadingUsnews(true);
+    getUSNewsWorldRankings()
+      .then((res) => {
+        setUSNewsWorldRankings(res.data);
+      })
+      .catch((err) => {
+        Toast.show({
+          icon: "fail",
+          content: "获取 USNEWS 排名数据失败了...",
+        });
+      })
+
+      .finally(() => {
+        setLoadingUsnews(false);
+      });
+  }, []);
 
   return (
     <div style={{ overflowY: "auto" }}>
@@ -286,18 +306,20 @@ export function HMTUniversity() {
           </Tabs.Tab>
 
           <Tabs.Tab title="USNews" key="usnews">
-            <AutoCenter>
-              <div
-                style={{ fontSize: 20, fontWeight: "bold", margin: "12px 0" }}
-                onClick={() => {
-                  if (usnewsDetails?.ranks?.length) {
-                    navigate(`/usnews/${usnewsDetails?.id}`);
-                  }
-                }}
-              >
-                USNews 世界大学排名 <RightOutline fontSize={16} />
-              </div>
-            </AutoCenter>
+            <SkeletonWrapper loading={loadingUsnews}>
+              <AutoCenter>
+                <div
+                  style={{ fontSize: 20, fontWeight: "bold", margin: "12px 0" }}
+                  onClick={() => {
+                    if (usnewsDetails?.ranks?.length) {
+                      navigate(`/usnews/${usnewsDetails?.id}`);
+                    }
+                  }}
+                >
+                  USNews 世界大学排名 <RightOutline fontSize={16} />
+                </div>
+              </AutoCenter>
+            </SkeletonWrapper>
             <RankLogo color="var(--adm-color-primary)" rankInfo={formatUSNewsRank(usnewsDetails?.ranks)} />
           </Tabs.Tab>
         </Tabs>

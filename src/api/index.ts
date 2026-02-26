@@ -1,6 +1,5 @@
 import axios, { type AxiosResponse } from "axios";
 import queryString from "query-string";
-import "./interceptors.ts";
 import { WORKER_URL, workerAxios } from "./proxy.ts";
 import { qsLatestYearNid, theYears, usnewsCountries, arwuYears, theLatestYear } from "../constant";
 
@@ -11,6 +10,8 @@ export const ARWU_EN_BASE_URL = "https://www.shanghairanking.com";
 
 // qs 官网地址
 export const QS_BASE_URL = "https://www.topuniversities.com";
+// qs 中文站
+export const QS_CN_BASE_URL = "https://www.qschina.cn";
 
 // 泰晤士官网
 export const THE_BASE_URL = "https://www.timeshighereducation.com";
@@ -757,33 +758,6 @@ export type USNewsWorldRanking = {
 };
 
 // 获取 USNews 世界大学排名
-/**
- * 由于 USnews 的设置, 无法直接通过请求获取, 请使用 /store/usnews.json 作为数据来源
- * @param options @deprecated
- */
-export function getUSNewsWorldRankings(options?: USNewsWorldRankingOptions) {
-  const defaultOptions: USNewsWorldRankingOptions = {
-    format: "json",
-    country: ["china", "hong-kong", "macau", "taiwan"],
-    page: 1,
-  };
-  return axios.get(
-    `${USNEWS_BASE_URL}/education/best-global-universities/api/search?${queryString.stringify(
-      {
-        ...defaultOptions,
-        ...options,
-      },
-      {
-        arrayFormat: "none",
-        skipEmptyString: true,
-        skipNull: true,
-        sort: false,
-      },
-    )}`,
-    {
-      headers: {
-        referrer: "https://www.usnews.com/",
-      },
-    },
-  );
+export function getUSNewsWorldRankings() {
+  return workerAxios.get<USNewsWorldRanking[]>("/usnews/rank");
 }

@@ -1,13 +1,12 @@
-import { AutoCenter, Card, ErrorBlock, Grid, NoticeBar, Space } from "antd-mobile";
+import { AutoCenter, Card, Ellipsis, ErrorBlock, Grid, NoticeBar, Space, Toast } from "antd-mobile";
 import { AppOutline, FireFill, LinkOutline } from "antd-mobile-icons";
 import { useLocation, useParams } from "wouter";
-import usnews from "../../store/usnews.json";
-import { useMemo } from "react";
 import { useUniversityStore } from "../../store";
 import { usnewsCountries } from "../../constant";
-import type { USNewsWorldRanking } from "../../api";
-import { Header, Score } from "../../components";
+import { getUSNewsWorldRankings, type USNewsWorldRanking } from "../../api";
+import { Header, Score, SkeletonWrapper } from "../../components";
 import { formatUSNewsRank, getCnNameFromTranslation } from "../../utils";
+import { useEffect, useMemo, useState } from "react";
 
 const statsTitle = {
   "Global Score": "综合得分",
@@ -15,14 +14,33 @@ const statsTitle = {
 } as Record<string, string>;
 
 export function USNewsRank() {
-  const navigate = useLocation()[1];
+  const [usnewsWorldRankings, setUSNewsWorldRankings] = useState<USNewsWorldRanking[]>([]);
+  const [loading, setLoading] = useState(false);
   const { id } = useParams<{ id: string }>();
-  const rankDetails = usnews.find((u) => u.id.toString() === id) as USNewsWorldRanking;
+  const rankDetails = usnewsWorldRankings.find((u) => u.id.toString() === id);
   const univList = useUniversityStore((state) => state.univList);
   const cnName = useMemo(() => {
     const u = univList.find((u) => u?.nameEn?.toLowerCase() === rankDetails?.name);
     return u?.nameCn;
   }, [rankDetails?.name, univList]);
+
+  useEffect(() => {
+    setLoading(true);
+    getUSNewsWorldRankings()
+      .then((res) => {
+        setUSNewsWorldRankings(res.data);
+      })
+      .catch((err) => {
+        Toast.show({
+          icon: "fail",
+          content: "获取 USNEWS 排名数据失败了...",
+        });
+      })
+
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div style={{ overflowY: "auto" }}>
@@ -48,26 +66,31 @@ export function USNewsRank() {
           </Space>
         }
       >
-        <Space direction="vertical" style={{ "--gap-horizontal": "4px" }}>
-          <div style={{ fontSize: 18, fontWeight: "bold" }}>
-            {cnName ?? getCnNameFromTranslation(rankDetails?.name)}
-          </div>
-          <Space style={{ fontSize: 14, color: "var(--adm-color-weak)", "--gap-horizontal": "4px" }}>
-            {usnewsCountries?.[rankDetails?.country_name]}·{rankDetails?.city}
+        <SkeletonWrapper loading={loading} showTitle lineCount={2}>
+          <Space direction="vertical" style={{ "--gap-horizontal": "4px" }}>
+            <div style={{ fontSize: 18, fontWeight: "bold" }}>
+              {cnName ?? getCnNameFromTranslation(rankDetails?.name)}
+            </div>
+            <Space style={{ fontSize: 14, color: "var(--adm-color-weak)", "--gap-horizontal": "4px" }}>
+              {usnewsCountries?.[rankDetails?.country_name ?? "China"]}·{rankDetails?.city}
+            </Space>
+            <Ellipsis expandText="展开" collapseText="收起" content={rankDetails?.blurb ?? ""} />
           </Space>
-        </Space>
+        </SkeletonWrapper>
       </Card>
 
       <Card style={{ margin: 12 }} title="统计数据">
-        <Grid columns={2}>
-          {rankDetails?.stats?.map((stat) => (
-            <Grid.Item key={stat.label}>
-              <AutoCenter>
-                <Score title={statsTitle[stat.label]} score={stat.value} color="var(--adm-color-primary)" />
-              </AutoCenter>
-            </Grid.Item>
-          ))}
-        </Grid>
+        <SkeletonWrapper loading={loading} showTitle lineCount={2}>
+          <Grid columns={2}>
+            {rankDetails?.stats?.map((stat) => (
+              <Grid.Item key={stat.label}>
+                <AutoCenter>
+                  <Score title={statsTitle[stat.label]} score={stat.value} color="var(--adm-color-primary)" />
+                </AutoCenter>
+              </Grid.Item>
+            ))}
+          </Grid>
+        </SkeletonWrapper>
       </Card>
 
       <Card style={{ margin: 12 }} title="历年排名">
