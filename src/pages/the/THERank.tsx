@@ -29,12 +29,14 @@ import {
   THE_BASE_URL,
   getTHEUnivRankTrend,
   type THEUnivRankTrendItem,
+  THE_RANK_KEY,
 } from "../../api";
 import { theYears } from "../../constant";
 import { CardExtraInfo, Header, RankLogo, Score, ScoreBarChart, SkeletonWrapper } from "../../components";
 import { pickBy } from "lodash-es";
 import { useUniversityStore } from "../../store";
 import { getCnNameFromTranslation } from "../../utils";
+import useSWR from "swr";
 
 type TheRankParams = {
   year: (typeof theYears)[number];
@@ -76,10 +78,11 @@ const trendTitles = {
 } as Record<string, string>;
 
 export function THERank() {
-  const navigate = useLocation()[1];
   const { year, nid } = queryString.parse(window.location.hash.split("?")[1]) as TheRankParams;
-  const [rankDetails, setRankDetails] = useState<THEWorldRanking>();
-  const [loadingRankDetails, setLoadingRankDetails] = useState(false);
+  const { data: theRankings, isLoading: loadingRankDetails } = useSWR(year ? [THE_RANK_KEY, year] : null, ([_, year]) =>
+    getTHEWorldRankings(year).then((res) => res.data?.data),
+  );
+  const rankDetails = useMemo(() => theRankings?.find((u) => u.nid === Number(nid)), [theRankings, nid]);
   // 基于 rankDetails 的属性形如 scores_teaching 但不包含 _rank 的为得分, 总得分单独拿出来
   const currentYearScores = useMemo(
     () =>
@@ -109,26 +112,6 @@ export function THERank() {
       getCnNameFromTranslation(rankDetails?.name)
     );
   }, [rankDetails?.name, univList]);
-
-  useEffect(() => {
-    if (year && nid) {
-      setLoadingRankDetails(true);
-      getTHEWorldRankings(year)
-        .then((res) => {
-          const details = res.data.data?.find((u) => u.nid === Number(nid));
-          setRankDetails(details);
-        })
-        .catch(() => {
-          Toast.show({
-            icon: "fail",
-            content: "获取该学校泰晤士排名详情失败了...",
-          });
-        })
-        .finally(() => {
-          setLoadingRankDetails(false);
-        });
-    }
-  }, [year, nid]);
 
   useEffect(() => {
     if (nid) {

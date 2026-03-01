@@ -29,6 +29,9 @@ import {
   type QSUnivRankByYear,
   getQSUnivRankTrendAsian,
   QS_BASE_URL,
+  QS_RANK_WORLD_TREND_KEY,
+  QS_RANK_ASIAN_TREND_KEY,
+  QS_RANK_KEY,
 } from "../../api";
 import { useEffect, useMemo, useState } from "react";
 import queryString from "query-string";
@@ -37,6 +40,7 @@ import { Header, RankTrendLineChart, ScoreBarChart, SkeletonWrapper } from "../.
 import { useSettingsStore, useUniversityStore } from "../../store";
 import { Score, QSRankStepsWithLogo } from "../../components";
 import { getCnNameFromTranslation, getColorFromADM } from "../../utils";
+import useSWR from "swr";
 
 type QSRankParams = {
   coreId: string;
@@ -59,93 +63,38 @@ const scoreTitles = {
 
 export function QSRank() {
   const { coreId, yearNid, title } = queryString.parse(window.location.hash.split("?")[1]) as QSRankParams;
-  const [rankDetails, setRankDetails] = useState<QSWorldRanking>();
-  const [loadingRankDetails, setLoadingRankDetails] = useState(false);
+  const { data: rankDetails, isLoading: loadingRankDetails } = useSWR(
+    title && yearNid ? [QS_RANK_KEY, { nid: yearNid, items_per_page: 1, search: title }] : null,
+    ([_, payload]) =>
+      getQSWorldRankings(payload).then((res) => {
+        if (res.data.score_nodes?.length) {
+          // 搜索到学校, 直接拿第一所因为是最相关的
+          return res.data.score_nodes[0];
+        } else {
+          throw new Error();
+        }
+      }),
+  );
   const univList = useUniversityStore((state) => state.univList);
   // 高校中文名字
   const univCnName = useMemo(
     () => univList.find((u) => u?.nameEn?.toLowerCase() === title?.toLowerCase())?.nameCn,
-    [univList, title]
+    [univList, title],
   );
-  const [rankTrend, setRankTrend] = useState<QSUnivRankByYear[]>([]);
-  const [loadingRankTrend, setLoadingRankTrend] = useState(false);
-  const [rankTrendAsian, setRankTrendAsian] = useState<QSUnivRankByYear[]>([]);
-  const [loadingRankTrendAsian, setLoadingRankTrendAsian] = useState(false);
-  const theme = useSettingsStore((state) => state.theme);
+  const { data: rankTrend = [], isLoading: loadingRankTrend } = useSWR(
+    coreId ? [QS_RANK_WORLD_TREND_KEY, coreId] : null,
+    ([_, coreId]) => getQSUnivRankTrend(coreId).then((res) => res.data?.[1]?.settings?.qs_profiles?.json_data ?? []),
+  );
+  const { data: rankTrendAsian = [], isLoading: loadingRankTrendAsian } = useSWR(
+    coreId ? [QS_RANK_ASIAN_TREND_KEY, coreId] : null,
+    ([_, coreId]) =>
+      getQSUnivRankTrendAsian(coreId).then((res) => res.data?.[1]?.settings?.qs_profiles?.json_data ?? []),
+  );
   const [rankTrendMode, setRankTrendMode] = useState<string>("steps");
   const [yearScoreMode, setYearScoreMode] = useState<string>("circles");
 
   // 拿到所有得分的数组
   const scoreDetails = useMemo(() => Object.values(rankDetails?.scores ?? {}).flat(), [rankDetails]);
-
-  useEffect(() => {
-    if (title && yearNid) {
-      setLoadingRankDetails(true);
-      // 通过 search 精准匹配到唯一的学校
-      getQSWorldRankings({
-        nid: yearNid,
-        items_per_page: 1,
-        search: title,
-      })
-        .then((res) => {
-          if (res.data.score_nodes?.length) {
-            // 搜索到学校, 直接拿第一所因为是最相关的
-            setRankDetails(res.data.score_nodes[0]);
-          } else {
-            throw new Error();
-          }
-        })
-        .catch(() => {
-          Toast.show({
-            icon: "fail",
-            content: "获取该学校 QS 排名详情失败了...",
-          });
-        })
-        .finally(() => {
-          setLoadingRankDetails(false);
-        });
-    }
-  }, [title, yearNid]);
-
-  useEffect(() => {
-    if (coreId) {
-      setLoadingRankTrend(true);
-      getQSUnivRankTrend(coreId)
-        .then((res) => {
-          const trend = res.data?.[1]?.settings?.qs_profiles?.json_data ?? [];
-          setRankTrend(trend);
-        })
-        .catch((err) => {
-          Toast.show({
-            icon: "fail",
-            content: "获取该学校历年QS排名趋势失败了...",
-          });
-        })
-        .finally(() => {
-          setLoadingRankTrend(false);
-        });
-    }
-  }, [coreId]);
-
-  useEffect(() => {
-    if (coreId) {
-      setLoadingRankTrendAsian(true);
-      getQSUnivRankTrendAsian(coreId)
-        .then((res) => {
-          const trend = res.data?.[1]?.settings?.qs_profiles?.json_data ?? [];
-          setRankTrendAsian(trend);
-        })
-        .catch((err) => {
-          Toast.show({
-            icon: "fail",
-            content: "获取该学校亚洲历年QS排名趋势失败了...",
-          });
-        })
-        .finally(() => {
-          setLoadingRankTrendAsian(false);
-        });
-    }
-  }, [coreId]);
 
   return (
     <div style={{ overflowY: "auto" }}>
@@ -264,7 +213,7 @@ export function QSRank() {
           />
         }
       >
-        <SkeletonWrapper loading={loadingRankTrend}>
+        <SkeletonWrapper loading={loadingRankTrend || loadingRankTrendAsian}>
           <Tabs>
             <Tabs.Tab title="QS世界排名" key="world">
               {rankTrendMode === "steps" ? (

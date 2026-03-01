@@ -1,24 +1,25 @@
 import { Dropdown, ErrorBlock, Grid, InfiniteScroll, List, Picker, Space, Toast } from "antd-mobile";
-import { AppOutline, DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
+import { DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "wouter";
-import { getTHEWorldRankings, type THEWorldRanking } from "../../api";
+import { getTHEWorldRankings, type THEWorldRanking, THE_RANK_KEY } from "../../api";
 import { theCountries, PAGE_SIZE, theYears, theLatestYear } from "../../constant";
 import { Header, SkeletonWrapper } from "../../components";
 import { getCnNameFromTranslation, sleep } from "../../utils";
 import queryString from "query-string";
 import { useUniversityStore } from "../../store";
+import useSWR from "swr";
 
 // 展示所有泰晤士排名的学校
 export function THERankings() {
-  const navigate = useLocation()[1];
-  const [theRankings, setTHERankings] = useState<THEWorldRanking[]>([]);
-  const [loadingTheRankings, setLoadingTHERankings] = useState(false);
+  // 存的是年份, e.g. 2025
+  const [yearPickerValue, setYearPickerValue] = useState<[(typeof theYears)[number]]>([theLatestYear]);
+  const { data: theRankings = [], isLoading: loadingTheRankings } = useSWR(
+    [THE_RANK_KEY, yearPickerValue[0]],
+    ([_, year]) => getTHEWorldRankings(year).then((res) => res.data.data),
+  );
   const [currentPage, setCurrentPage] = useState<number>(1);
   const totalPages = useMemo(() => Math.ceil(theRankings.length / PAGE_SIZE), [theRankings.length]);
   const [showYearPicker, setShowYearPicker] = useState(false);
-  // 存的是年份, e.g. 2025
-  const [yearPickerValue, setYearPickerValue] = useState<[(typeof theYears)[number]]>([theLatestYear]);
   const [showCountriesPicker, setShowCountriesPicker] = useState(false);
   const [countriesPickerValue, setCountriesPickerValue] = useState<[string]>([theCountries[0]]);
   const univList = useUniversityStore((state) => state.univList);
@@ -33,25 +34,6 @@ export function THERankings() {
     () => filteredTHERankings.slice(0, currentPage * PAGE_SIZE),
     [filteredTHERankings, currentPage],
   );
-
-  useEffect(() => {
-    setLoadingTHERankings(true);
-    getTHEWorldRankings(yearPickerValue[0])
-      .then((res) => {
-        // 只保留中国内地和港澳台的高校
-        const data = res.data.data?.filter((r) => theCountries.includes(r.location)) || [];
-        setTHERankings(data);
-      })
-      .catch((err) => {
-        Toast.show({
-          icon: "fail",
-          content: "获取泰晤士排名数据失败了...",
-        });
-      })
-      .finally(() => {
-        setLoadingTHERankings(false);
-      });
-  }, [yearPickerValue]);
 
   return (
     <>

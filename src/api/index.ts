@@ -476,9 +476,11 @@ export type ARWUWoldRankingsResponse = {
   mutations: [];
 };
 
+export const ARWU_RANK_KEY = "/arwu/rank";
+
 // 获取软科世界排名
 export async function getARWUWoldRankings(year = arwuYears[0]): Promise<ARWUWoldRankingsResponse> {
-  return workerAxios.get(`/arwu/rank/${year}`);
+  return workerAxios.get(`${ARWU_RANK_KEY}/${year}`);
 }
 
 // qs 排名
@@ -556,6 +558,8 @@ export type QSWorldRankingsResponse = {
   score_nodes: QSWorldRanking[];
 };
 
+export const QS_RANK_KEY = "/qs/rank";
+
 // 拿所有学校的 QS 排名
 export function getQSWorldRankings(options: QSWorldRankingsRequestOptions) {
   const defaultOptions: QSWorldRankingsRequestOptions = {
@@ -568,7 +572,7 @@ export function getQSWorldRankings(options: QSWorldRankingsRequestOptions) {
     countries: ["cn", "hk", "tw", "mo"],
   };
   return workerAxios.get<QSWorldRankingsResponse>(
-    `qs/rank?${queryString.stringify(
+    `${QS_RANK_KEY}?${queryString.stringify(
       { ...defaultOptions, ...options },
       {
         arrayFormat: "comma",
@@ -602,10 +606,14 @@ export type QSUnivRankTrendResponse = {
   };
 }[];
 
+export const QS_RANK_WORLD_TREND_KEY = "/qs/rank/world-trend";
+
 // qs 世界排名趋势
 export function getQSUnivRankTrend(coreId: string) {
   return workerAxios.get<QSUnivRankTrendResponse>(`/qs/rank/world-trend/${coreId}`);
 }
+
+export const QS_RANK_ASIAN_TREND_KEY = "/qs/rank/asian-trend";
 
 // qs 亚洲排名趋势
 export function getQSUnivRankTrendAsian(coreId: string) {
@@ -697,10 +705,12 @@ export type THEUnivRankTrendResponse = {
   data: THEUnivRankTrendItem[];
 };
 
+export const THE_RANK_KEY = "/the/rank";
+
 // 获取泰晤士所有世界排名
 export function getTHEWorldRankings(year: (typeof theYears)[number] = theLatestYear) {
   // 默认拿最新一年的数据
-  return workerAxios.get<THEWorldRankingsResponse>(`/the/rank/${year}`);
+  return workerAxios.get<THEWorldRankingsResponse>(`${THE_RANK_KEY}/${year}`);
 }
 
 export function getTHEUnivRankTrend(nid: string): Promise<AxiosResponse<THEUnivRankTrendResponse>> {
@@ -757,7 +767,9 @@ export type USNewsWorldRanking = {
   blurb: "";
 };
 
+export const USNEWS_RANK_KEY = "/usnews/rank";
+
 // 获取 USNews 世界大学排名
 export function getUSNewsWorldRankings() {
-  return workerAxios.get<USNewsWorldRanking[]>("/usnews/rank");
+  return workerAxios.get<USNewsWorldRanking[]>(USNEWS_RANK_KEY);
 }

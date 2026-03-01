@@ -19,6 +19,6 @@ npm install
 npm run dev
 ```
 
-## 数据问题
+## TODO
 
-- usnews 为手动爬取, 脚本在 `scripts/usnews.js`
+see [TODO.md](./TODO.md)

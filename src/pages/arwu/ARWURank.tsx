@@ -1,8 +1,9 @@
 import queryString from "query-string";
 import { Header, RankLogo, RankTrendLineChart, Score, ScoreBarChart, SkeletonWrapper } from "../../components";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ARWU_BASE_URL,
+  ARWU_RANK_KEY,
   type ARWUWoldRanking,
   type ARWUWoldRankingsResponse,
   getARWUWoldRankings,
@@ -14,8 +15,8 @@ import { useSettingsStore, useUniversityStore } from "../../store";
 import { Card, Space, Toast, Image, Grid, AutoCenter, Tabs, Steps, Segmented } from "antd-mobile";
 import { FireFill, HistogramOutline, LinkOutline, UnorderedListOutline } from "antd-mobile-icons";
 import { isEmpty } from "lodash-es";
-import ReactECharts from "echarts-for-react";
 import { getChartOption, getColorFromADM, parseRank } from "../../utils";
+import useSWR from "swr";
 
 type ARWURankParams = {
   up: string;
@@ -29,30 +30,15 @@ export function ARWURank() {
     year,
     hmt = false,
   } = queryString.parse(window.location.hash.split("?")[1], { parseBooleans: true }) as ARWURankParams;
-  const [rankDetails, setRankDetails] = useState<ARWUWoldRanking>();
-  const [indicators, setIndicators] = useState<ARWUWoldRankingsResponse["data"][0]["indList"]>([]);
+  const { data, isLoading } = useSWR([ARWU_RANK_KEY, year], ([_, year]) =>
+    getARWUWoldRankings(year).then((res) => res.data?.[0]),
+  );
+  const rankDetails = useMemo(() => data?.univData?.find((u) => u.univUp === up || u.univUpEn === up), [data, up]);
+  const indicators = useMemo(() => data?.indList ?? [], [data]);
   const [rankTrends, setRankTrends] = useState<Partial<Pick<UniversityARWUDetail["details"], "arwu" | "bcur">>>();
-  const theme = useSettingsStore((state) => state.theme);
   // 展示形式, 默认使用 steps 展示, 枚举为 steps/chart
   const [rankTrendMode, setRankTrendMode] = useState<string>("steps");
   const [yearScoreMode, setYearScoreMode] = useState<string>("circles");
-
-  useEffect(() => {
-    getARWUWoldRankings(year)
-      .then((res) => {
-        const data = res.data?.[0];
-        // 只存储中国内地和港澳台的高校
-        setRankDetails(data?.univData?.find((u) => u.univUp === up || u.univUpEn === up));
-        setIndicators(data?.indList ?? []);
-      })
-      .catch((err) => {
-        console.error("报错了", err);
-        Toast.show({
-          icon: "fail",
-          content: "获取该学校软科排名数据失败了...",
-        });
-      });
-  }, [year, up]);
 
   useEffect(() => {
     // 获取到 rankDetails 以后再去获取这个学校的 trend 数据
@@ -108,22 +94,24 @@ export function ARWURank() {
           </Space>
         }
       >
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <Space direction="vertical" style={{ "--gap-horizontal": "4px" }}>
-            <div style={{ fontSize: 18, fontWeight: "bold" }}>{rankDetails?.univNameCn}</div>
-            <Space
-              align="center"
-              style={{
-                fontSize: 14,
-                color: "var(--adm-color-weak)",
-                "--gap-horizontal": "4px",
-              }}
-            >
-              {rankDetails?.region}
+        <SkeletonWrapper loading={isLoading} showTitle lineCount={2}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <Space direction="vertical" style={{ "--gap-horizontal": "4px" }}>
+              <div style={{ fontSize: 18, fontWeight: "bold" }}>{rankDetails?.univNameCn}</div>
+              <Space
+                align="center"
+                style={{
+                  fontSize: 14,
+                  color: "var(--adm-color-weak)",
+                  "--gap-horizontal": "4px",
+                }}
+              >
+                {rankDetails?.region}
+              </Space>
             </Space>
-          </Space>
-          <Image lazy src={`${ARWU_BASE_URL}/_uni/${rankDetails?.univLogo}`} fit="cover" width={40} height={40} />
-        </div>
+            <Image lazy src={`${ARWU_BASE_URL}/_uni/${rankDetails?.univLogo}`} fit="cover" width={40} height={40} />
+          </div>
+        </SkeletonWrapper>
       </Card>
 
       <Card
@@ -148,37 +136,39 @@ export function ARWURank() {
           />
         }
       >
-        {yearScoreMode === "circles" ? (
-          <Grid columns={4} style={{ "--gap-vertical": "12px" }}>
-            <Grid.Item>
-              <AutoCenter>
-                <Score score={rankDetails?.score} title="综合得分" color="var(--adm-color-danger)" />
-              </AutoCenter>
-            </Grid.Item>
-            {Object.entries(rankDetails?.indData ?? {}).map(([indKey, value], index) => (
-              <Grid.Item key={index}>
+        <SkeletonWrapper loading={isLoading}>
+          {yearScoreMode === "circles" ? (
+            <Grid columns={4} style={{ "--gap-vertical": "12px" }}>
+              <Grid.Item>
                 <AutoCenter>
-                  <Score
-                    color="var(--adm-color-danger)"
-                    score={value}
-                    title={indicators.find((ind) => ind.code === indKey)?.nameCn ?? indKey}
-                  />
+                  <Score score={rankDetails?.score} title="综合得分" color="var(--adm-color-danger)" />
                 </AutoCenter>
               </Grid.Item>
-            ))}
-          </Grid>
-        ) : (
-          <ScoreBarChart
-            categories={[
-              "综合得分",
-              ...Object.keys(rankDetails?.indData ?? {}).map(
-                (ind) => indicators.find((i) => i.code === ind)?.nameCn || ind,
-              ),
-            ]}
-            values={[rankDetails?.score, ...Object.values(rankDetails?.indData ?? {})]}
-            color={getColorFromADM("--adm-color-danger")}
-          />
-        )}
+              {Object.entries(rankDetails?.indData ?? {}).map(([indKey, value], index) => (
+                <Grid.Item key={index}>
+                  <AutoCenter>
+                    <Score
+                      color="var(--adm-color-danger)"
+                      score={value}
+                      title={indicators.find((ind) => ind.code === indKey)?.nameCn ?? indKey}
+                    />
+                  </AutoCenter>
+                </Grid.Item>
+              ))}
+            </Grid>
+          ) : (
+            <ScoreBarChart
+              categories={[
+                "综合得分",
+                ...Object.keys(rankDetails?.indData ?? {}).map(
+                  (ind) => indicators.find((i) => i.code === ind)?.nameCn || ind,
+                ),
+              ]}
+              values={[rankDetails?.score, ...Object.values(rankDetails?.indData ?? {})]}
+              color={getColorFromADM("--adm-color-danger")}
+            />
+          )}
+        </SkeletonWrapper>
       </Card>
 
       <Card
@@ -203,38 +193,14 @@ export function ARWURank() {
           />
         }
       >
-        <Tabs>
-          <Tabs.Tab title="软科世界排名" key="arwu">
-            {rankTrendMode === "steps" ? (
-              <>
-                <RankLogo color="var(--adm-color-danger)" rankInfo={rankTrends?.arwu?.rkLatest?.ranking} />
-                <Steps>
-                  {rankTrends?.arwu?.rkHistory?.map((history) => (
-                    <Steps.Step
-                      key={history.yr}
-                      title={history?.ranking}
-                      description={history?.yr}
-                      status={history?.yr?.toString() === year ? "error" : "process"}
-                    />
-                  ))}
-                </Steps>
-              </>
-            ) : (
-              <RankTrendLineChart
-                highlightYear={year}
-                years={rankTrends?.arwu?.rkHistory?.map((h) => h.yr)}
-                values={rankTrends?.arwu?.rkHistory?.map((h) => h.ranking)}
-              />
-            )}
-          </Tabs.Tab>
-          {/* 港澳台地区高校无国内排名 */}
-          {hmt ? null : (
-            <Tabs.Tab title="软科中国排名" key="bcur">
+        <SkeletonWrapper loading={isLoading}>
+          <Tabs>
+            <Tabs.Tab title="软科世界排名" key="arwu">
               {rankTrendMode === "steps" ? (
                 <>
-                  <RankLogo color="var(--adm-color-danger)" rankInfo={rankTrends?.bcur?.rkCategory?.ranking} />
+                  <RankLogo color="var(--adm-color-danger)" rankInfo={rankTrends?.arwu?.rkLatest?.ranking} />
                   <Steps>
-                    {rankTrends?.bcur?.rkHistory?.map((history) => (
+                    {rankTrends?.arwu?.rkHistory?.map((history) => (
                       <Steps.Step
                         key={history.yr}
                         title={history?.ranking}
@@ -246,14 +212,40 @@ export function ARWURank() {
                 </>
               ) : (
                 <RankTrendLineChart
-                  years={rankTrends?.bcur?.rkHistory?.map((h) => h.yr?.toString())}
-                  values={rankTrends?.bcur?.rkHistory?.map((h) => h.ranking)}
                   highlightYear={year}
+                  years={rankTrends?.arwu?.rkHistory?.map((h) => h.yr)}
+                  values={rankTrends?.arwu?.rkHistory?.map((h) => h.ranking)}
                 />
               )}
             </Tabs.Tab>
-          )}
-        </Tabs>
+            {/* 港澳台地区高校无国内排名 */}
+            {hmt ? null : (
+              <Tabs.Tab title="软科中国排名" key="bcur">
+                {rankTrendMode === "steps" ? (
+                  <>
+                    <RankLogo color="var(--adm-color-danger)" rankInfo={rankTrends?.bcur?.rkCategory?.ranking} />
+                    <Steps>
+                      {rankTrends?.bcur?.rkHistory?.map((history) => (
+                        <Steps.Step
+                          key={history.yr}
+                          title={history?.ranking}
+                          description={history?.yr}
+                          status={history?.yr?.toString() === year ? "error" : "process"}
+                        />
+                      ))}
+                    </Steps>
+                  </>
+                ) : (
+                  <RankTrendLineChart
+                    years={rankTrends?.bcur?.rkHistory?.map((h) => h.yr?.toString())}
+                    values={rankTrends?.bcur?.rkHistory?.map((h) => h.ranking)}
+                    highlightYear={year}
+                  />
+                )}
+              </Tabs.Tab>
+            )}
+          </Tabs>
+        </SkeletonWrapper>
       </Card>
     </div>
   );

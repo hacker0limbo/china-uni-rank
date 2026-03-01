@@ -1,17 +1,19 @@
 import { Dropdown, ErrorBlock, InfiniteScroll, List, NoticeBar, Picker, Space, Toast } from "antd-mobile";
-import { AppOutline, DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
+import { DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
 import { useLocation } from "wouter";
-import { getUSNewsWorldRankings, type USNewsWorldRanking } from "../../api";
-import { useEffect, useMemo, useState } from "react";
+import { getUSNewsWorldRankings, USNEWS_RANK_KEY } from "../../api";
+import { useMemo, useState } from "react";
 import { PAGE_SIZE, usnewsCountries } from "../../constant";
 import { formatUSNewsRank, getCnNameFromTranslation, sleep } from "../../utils";
 import { useUniversityStore } from "../../store";
 import { Header, SkeletonWrapper } from "../../components";
+import useSWR from "swr";
 
 export function USNewsRankings() {
   const navigate = useLocation()[1];
-  const [loading, setLoading] = useState(false);
-  const [usnewsWorldRankings, setUSNewsWorldRankings] = useState<USNewsWorldRanking[]>([]);
+  const { data: usnewsWorldRankings = [], isLoading } = useSWR(USNEWS_RANK_KEY, () =>
+    getUSNewsWorldRankings().then((res) => res.data),
+  );
   const [showCountriesPicker, setShowCountriesPicker] = useState(false);
   const [countriesPickerValue, setCountriesPickerValue] = useState<[keyof typeof usnewsCountries]>(["All"]);
   const filteredRankings = useMemo(() => {
@@ -26,24 +28,6 @@ export function USNewsRankings() {
     [filteredRankings, currentPage],
   );
   const univList = useUniversityStore((state) => state.univList);
-
-  useEffect(() => {
-    setLoading(true);
-    getUSNewsWorldRankings()
-      .then((res) => {
-        setUSNewsWorldRankings(res.data);
-      })
-      .catch((err) => {
-        Toast.show({
-          icon: "fail",
-          content: "获取 USNEWS 排名数据失败了...",
-        });
-      })
-
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
 
   return (
     <>
@@ -62,7 +46,7 @@ export function USNewsRankings() {
 
       <SkeletonWrapper
         lineCount={15}
-        loading={loading}
+        loading={isLoading}
         style={{ margin: 12, backgroundColor: "var(--adm-color-background)", padding: 12 }}
       >
         <List mode="card" header={`共查询到 ${filteredRankings.length} 所高校`}>

@@ -13,6 +13,9 @@ import {
   getQSWorldRankings,
   getTHEWorldRankings,
   getUSNewsWorldRankings,
+  USNEWS_RANK_KEY,
+  THE_RANK_KEY,
+  QS_RANK_KEY,
 } from "../../api";
 import { Card, Rate, Space, Toast, Image, Divider, Grid, Tabs, AutoCenter } from "antd-mobile";
 import { GlobalOutline, LinkOutline, LocationOutline, RightOutline, StarOutline } from "antd-mobile-icons";
@@ -22,6 +25,7 @@ import { ListTable } from "@visactor/react-vtable";
 import { type ColumnDefine } from "@visactor/vtable";
 import { formatUSNewsRank, getAliasesFromEnName, getCnNameFromTranslation, getTableOption } from "../../utils";
 import { useTableTheme } from "../../hooks";
+import useSWR from "swr";
 
 // 软科世界一流学科排名
 const globalSubjectColumns: ColumnDefine[] = [
@@ -49,17 +53,51 @@ export function HMTUniversity() {
   const removeFavorite = useFavoriteUnivStore((state) => state.removeFavorite);
   const isFavorite = useMemo(() => favoriteUps?.map((u) => u.up)?.includes(up), [favoriteUps, up]);
   const tableTheme = useTableTheme();
-  const [qsRankDetails, setQSRankDetails] = useState<QSWorldRanking>();
-  const [loadingQSRankDetails, setLoadingQSRankDetails] = useState(false);
-  const [theRankDetails, setTheRankDetails] = useState<THEWorldRanking>();
-  const [loadingTheRankDetails, setLoadingTheRankDetails] = useState(false);
-  const [usnewsWorldRankings, setUSNewsWorldRankings] = useState<USNewsWorldRanking[]>([]);
-  const [loadingUsnews, setLoadingUsnews] = useState(false);
-  const usnewsDetails = usnewsWorldRankings.find((u) =>
-    getAliasesFromEnName(hmtDetailsARWU?.nameEn)
-      ?.map((a) => a?.toLowerCase())
-      ?.includes(u.name?.toLowerCase()),
-  ) as USNewsWorldRanking | undefined;
+  const { data: qsRankDetails, isLoading: loadingQSRankDetails } = useSWR(
+    // 只有在查找到对应英文名的情况下才去查 qs 的信息
+    hmtDetailsARWU
+      ? [
+          QS_RANK_KEY,
+          {
+            nid: qsLatestYearNid,
+            items_per_page: 1,
+            search: hmtDetailsARWU.nameEn,
+          },
+        ]
+      : null,
+    ([_, payload]) =>
+      getQSWorldRankings(payload).then((res) => {
+        if (res.data.score_nodes?.length) {
+          // 搜索到学校, 直接拿第一所因为是最相关的
+          return res.data.score_nodes[0];
+        } else {
+          throw new Error();
+        }
+      }),
+  );
+  const { data: theRankings = [], isLoading: loadingTheRankDetails } = useSWR(
+    [THE_RANK_KEY, theLatestYear],
+    ([_, year]) => getTHEWorldRankings(year).then((res) => res.data?.data),
+  );
+  const theRankDetails = useMemo(
+    () =>
+      theRankings?.find((u) =>
+        getAliasesFromEnName(hmtDetailsARWU?.nameEn)?.some((a) => a?.toLowerCase() === u.name?.toLowerCase()),
+      ),
+    [hmtDetailsARWU, theRankings],
+  );
+  const { data: usnewsWorldRankings = [], isLoading: loadingUsnews } = useSWR(USNEWS_RANK_KEY, () =>
+    getUSNewsWorldRankings().then((res) => res.data),
+  );
+  const usnewsDetails = useMemo(
+    () =>
+      usnewsWorldRankings.find((u) =>
+        getAliasesFromEnName(hmtDetailsARWU?.nameEn)
+          ?.map((a) => a?.toLowerCase())
+          ?.includes(u.name?.toLowerCase()),
+      ),
+    [hmtDetailsARWU, usnewsWorldRankings],
+  );
 
   useEffect(() => {
     if (up) {
@@ -80,75 +118,6 @@ export function HMTUniversity() {
         });
     }
   }, [up]);
-
-  useEffect(() => {
-    // 只有在查找到对应英文名的情况下才去查 qs 的信息
-    if (hmtDetailsARWU?.nameEn) {
-      setLoadingQSRankDetails(true);
-      getQSWorldRankings({
-        nid: qsLatestYearNid,
-        items_per_page: 1,
-        search: hmtDetailsARWU.nameEn,
-      })
-        .then((res) => {
-          if (res.data.score_nodes?.length) {
-            // 搜索到学校, 直接拿第一所因为是最相关的
-            setQSRankDetails(res.data.score_nodes[0]);
-          } else {
-            throw new Error();
-          }
-        })
-        .catch(() => {
-          Toast.show({
-            icon: "fail",
-            content: "获取该学校 QS 排名详情失败了...",
-          });
-        })
-        .finally(() => {
-          setLoadingQSRankDetails(false);
-        });
-    }
-  }, [hmtDetailsARWU?.nameEn]);
-
-  useEffect(() => {
-    setLoadingTheRankDetails(true);
-    getTHEWorldRankings(theLatestYear)
-      .then((res) => {
-        const details = res.data.data?.find((u) =>
-          getAliasesFromEnName(hmtDetailsARWU?.nameEn)
-            ?.map((a) => a?.toLowerCase())
-            ?.includes(u.name?.toLowerCase()),
-        );
-        setTheRankDetails(details);
-      })
-      .catch(() => {
-        Toast.show({
-          icon: "fail",
-          content: "获取该学校泰晤士排名详情失败了...",
-        });
-      })
-      .finally(() => {
-        setLoadingTheRankDetails(false);
-      });
-  }, [hmtDetailsARWU?.nameEn]);
-
-  useEffect(() => {
-    setLoadingUsnews(true);
-    getUSNewsWorldRankings()
-      .then((res) => {
-        setUSNewsWorldRankings(res.data);
-      })
-      .catch((err) => {
-        Toast.show({
-          icon: "fail",
-          content: "获取 USNEWS 排名数据失败了...",
-        });
-      })
-
-      .finally(() => {
-        setLoadingUsnews(false);
-      });
-  }, []);
 
   return (
     <div style={{ overflowY: "auto" }}>

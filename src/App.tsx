@@ -7,7 +7,16 @@ import { Home } from "./pages/Home";
 import { NotFound } from "./pages/NotFound";
 import { Settings, ThemeSetting } from "./pages/settings";
 import { Universities, University } from "./pages/universities";
-import { getUnivListWithCategories, getHMTUnivList } from "./api";
+import {
+  getUnivListWithCategories,
+  getHMTUnivList,
+  USNEWS_RANK_KEY,
+  THE_RANK_KEY,
+  QS_RANK_WORLD_TREND_KEY,
+  QS_RANK_ASIAN_TREND_KEY,
+  QS_RANK_KEY,
+  ARWU_RANK_KEY,
+} from "./api";
 import { useHMTUniversityStore, useUniversityStore } from "./store";
 import { QSRank, QSRankings } from "./pages/qs";
 import { THERank, THERankings } from "./pages/the";
@@ -16,10 +25,11 @@ import { ARWURank, ARWURankings } from "./pages/arwu";
 import { useSettingsStore } from "./store";
 import { HMTUniversities, HMTUniversity } from "./pages/hmt-universities";
 import { arwuHMTCountryLabels } from "./constant";
+import { SWRConfig } from "swr";
 
 Toast.config({
   duration: 1000,
-  // maskClickable: false,
+  maskClickable: false,
 });
 
 function App() {
@@ -30,8 +40,6 @@ function App() {
   const theme = useSettingsStore((state) => state.theme);
   const [loadingUnivList, setLoadingUnivList] = useState(false);
   const [loadingHMTUnivList, setLoadingHMTUnivList] = useState(false);
-
-  console.log("loading, ", loadingUnivList, loadingHMTUnivList);
 
   useEffect(() => {
     // 获取大陆高校数据
@@ -90,7 +98,36 @@ function App() {
   }, []);
 
   return (
-    <>
+    <SWRConfig
+      value={{
+        // 5 分钟内相同 key 的请求只会触发一次,
+        dedupingInterval: 5 * 60 * 1000,
+        onError: (err, key) => {
+          // 统一设置报错消息, 注意这里的 key 是序列化过后的, 如果多参数传递数组这种情况会被序列化为一个 string
+          let errorMessage = "";
+          if (key.includes(USNEWS_RANK_KEY)) {
+            errorMessage = "获取 U.S.News 排名数据失败";
+          } else if (key.includes(THE_RANK_KEY)) {
+            errorMessage = "获取泰晤士排名数据失败";
+          } else if (key.includes(QS_RANK_WORLD_TREND_KEY)) {
+            errorMessage = "获取 QS 世界排名趋势数据失败";
+          } else if (key.includes(QS_RANK_ASIAN_TREND_KEY)) {
+            errorMessage = "获取 QS 亚洲排名趋势数据失败";
+          } else if (key.includes(QS_RANK_KEY)) {
+            errorMessage = "获取 QS 世界排名数据失败";
+          } else if (key.includes(ARWU_RANK_KEY)) {
+            errorMessage = "获取软科世界排名数据失败";
+          } else {
+            errorMessage = "获取数据失败";
+          }
+          Toast.show({
+            icon: "fail",
+            content: errorMessage,
+            duration: 2500,
+          });
+        },
+      }}
+    >
       <Router hook={useHashLocation}>
         <Switch>
           <Route path="/" component={Home} />
@@ -130,7 +167,7 @@ function App() {
           <TabBar.Item key="/settings" icon={<SetOutline />} title="设置" />
         </TabBar>
       ) : null}
-    </>
+    </SWRConfig>
   );
 }
 

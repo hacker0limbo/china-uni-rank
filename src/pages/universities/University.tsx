@@ -26,18 +26,14 @@ import { useLocation, useParams } from "wouter";
 import { useFavoriteUnivStore, useSettingsStore, useUniversityStore } from "../../store";
 import {
   ARWU_BASE_URL,
-  getQSUnivRankTrend,
-  getTHEUnivRankTrend,
   getTHEWorldRankings,
   getUSNewsWorldRankings,
-  type QSUnivRankByYear,
+  QS_RANK_KEY,
+  THE_RANK_KEY,
   type QSWorldRanking,
-  type THEUnivRankTrendItem,
-  type THEWorldRanking,
-  type USNewsWorldRanking,
 } from "../../api";
 import { useEffect, useMemo, useState } from "react";
-import { getUnivDetailsFromARWU, type UniversityARWUDetail, getQSWorldRankings } from "../../api";
+import { getUnivDetailsFromARWU, type UniversityARWUDetail, getQSWorldRankings, USNEWS_RANK_KEY } from "../../api";
 import { Header, QSRankStepsWithLogo, RankLogo, Score, SkeletonWrapper } from "../../components";
 import { qsNidToYear, qsLatestYearNid, theLatestYear, arwuYears } from "../../constant";
 import queryString from "query-string";
@@ -45,6 +41,7 @@ import { formatUSNewsRank, getTableOption } from "../../utils";
 import { ListTable } from "@visactor/react-vtable";
 import { type ColumnDefine } from "@visactor/vtable";
 import { useTableTheme } from "../../hooks";
+import useSWR from "swr";
 
 // 软科中国大学专业排名
 const majorColumns: ColumnDefine[] = [
@@ -108,13 +105,43 @@ export function University() {
   const categoryData = useUniversityStore((state) => state.categoryData);
   const [loadingDetailsARWU, setLoadingDetailsARWU] = useState(false);
   const [detailsARWU, setDetailsARWU] = useState<UniversityARWUDetail | null>(null);
-  const [qsRankDetails, setQSRankDetails] = useState<QSWorldRanking>();
-  const [loadingQSRankDetails, setLoadingQSRankDetails] = useState(false);
-  const [theRankDetails, setTheRankDetails] = useState<THEWorldRanking>();
-  const [loadingTheRankDetails, setLoadingTheRankDetails] = useState(false);
-  const [usnewsWorldRankings, setUSNewsWorldRankings] = useState<USNewsWorldRanking[]>([]);
-  const [loadingUsnews, setLoadingUsnews] = useState(false);
-  const usnewsDetails = usnewsWorldRankings.find((u) => u.name.toLowerCase() === detailsARWU?.nameEn?.toLowerCase());
+  const { data: qsRankDetails, isLoading: loadingQSRankDetails } = useSWR(
+    // 只有在查找到对应英文名的情况下才去查 qs 的信息
+    detailsARWU?.nameEn
+      ? [
+          QS_RANK_KEY,
+          {
+            nid: qsLatestYearNid,
+            items_per_page: 1,
+            search: detailsARWU.nameEn,
+          },
+        ]
+      : null,
+    ([_, payload]) =>
+      getQSWorldRankings(payload).then((res) => {
+        if (res.data.score_nodes?.length) {
+          // 搜索到学校, 直接拿第一所因为是最相关的
+          return res.data.score_nodes[0];
+        } else {
+          throw new Error();
+        }
+      }),
+  );
+  const { data: theRankings = [], isLoading: loadingTheRankDetails } = useSWR(
+    [THE_RANK_KEY, theLatestYear],
+    ([_, year]) => getTHEWorldRankings(year).then((res) => res.data?.data),
+  );
+  const theRankDetails = useMemo(
+    () => theRankings?.find((u) => u.name?.toLowerCase() === detailsARWU?.nameEn?.toLowerCase()),
+    [detailsARWU?.nameEn, theRankings],
+  );
+  const { data: usnewsWorldRankings = [], isLoading: loadingUSNews } = useSWR(USNEWS_RANK_KEY, () =>
+    getUSNewsWorldRankings().then((res) => res.data),
+  );
+  const usnewsDetails = useMemo(
+    () => usnewsWorldRankings.find((u) => u.name.toLowerCase() === detailsARWU?.nameEn?.toLowerCase()),
+    [detailsARWU?.nameEn, usnewsWorldRankings],
+  );
 
   const tableTheme = useTableTheme();
   // 收藏
@@ -142,72 +169,6 @@ export function University() {
         });
     }
   }, [up]);
-
-  useEffect(() => {
-    // 只有在查找到对应英文名的情况下才去查 qs 的信息
-    if (detailsARWU?.nameEn) {
-      setLoadingQSRankDetails(true);
-      getQSWorldRankings({
-        nid: qsLatestYearNid,
-        items_per_page: 1,
-        search: detailsARWU.nameEn,
-      })
-        .then((res) => {
-          if (res.data.score_nodes?.length) {
-            // 搜索到学校, 直接拿第一所因为是最相关的
-            setQSRankDetails(res.data.score_nodes[0]);
-          } else {
-            throw new Error();
-          }
-        })
-        .catch(() => {
-          Toast.show({
-            icon: "fail",
-            content: "获取该学校 QS 排名详情失败了...",
-          });
-        })
-        .finally(() => {
-          setLoadingQSRankDetails(false);
-        });
-    }
-  }, [detailsARWU?.nameEn]);
-
-  useEffect(() => {
-    setLoadingTheRankDetails(true);
-    getTHEWorldRankings()
-      .then((res) => {
-        // 直接根据英文名字匹配泰晤士学校
-        const details = res.data.data?.find((u) => u.name?.toLowerCase() === detailsARWU?.nameEn?.toLowerCase());
-        setTheRankDetails(details);
-      })
-      .catch(() => {
-        Toast.show({
-          icon: "fail",
-          content: "获取该学校泰晤士排名详情失败了...",
-        });
-      })
-      .finally(() => {
-        setLoadingTheRankDetails(false);
-      });
-  }, [detailsARWU?.nameEn]);
-
-  useEffect(() => {
-    setLoadingUsnews(true);
-    getUSNewsWorldRankings()
-      .then((res) => {
-        setUSNewsWorldRankings(res.data);
-      })
-      .catch((err) => {
-        Toast.show({
-          icon: "fail",
-          content: "获取 USNEWS 排名数据失败了...",
-        });
-      })
-
-      .finally(() => {
-        setLoadingUsnews(false);
-      });
-  }, []);
 
   return (
     <div style={{ overflowY: "auto" }}>
@@ -395,7 +356,7 @@ export function University() {
           </Tabs.Tab>
 
           <Tabs.Tab title="USNews" key="usnews">
-            <SkeletonWrapper loading={loadingUsnews}>
+            <SkeletonWrapper loading={loadingUSNews}>
               <AutoCenter>
                 <div
                   style={{ fontSize: 20, fontWeight: "bold", margin: "12px 0" }}

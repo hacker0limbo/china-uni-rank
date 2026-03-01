@@ -1,3 +1,5 @@
+import { USNEWS_RANK_KEY } from "../api";
+
 // 列表页每页显示的高校数量
 export const PAGE_SIZE = 20;
 
@@ -78,6 +80,7 @@ export const theCountries = ["全部地区", "China", "Hong Kong", "Taiwan", "Ma
 // 拿最新的年份
 export const theLatestYear = theYears[0];
 
+// usnews 排名的国家
 export const usnewsCountries = {
   All: "全部地区",
   China: "中国内地",

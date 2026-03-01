@@ -1,12 +1,13 @@
 import { AutoCenter, Card, Ellipsis, ErrorBlock, Grid, NoticeBar, Space, Toast } from "antd-mobile";
-import { AppOutline, FireFill, LinkOutline } from "antd-mobile-icons";
-import { useLocation, useParams } from "wouter";
+import { FireFill, LinkOutline } from "antd-mobile-icons";
+import { useParams } from "wouter";
 import { useUniversityStore } from "../../store";
 import { usnewsCountries } from "../../constant";
-import { getUSNewsWorldRankings, type USNewsWorldRanking } from "../../api";
+import { getUSNewsWorldRankings, USNEWS_RANK_KEY } from "../../api";
 import { Header, Score, SkeletonWrapper } from "../../components";
 import { formatUSNewsRank, getCnNameFromTranslation } from "../../utils";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import useSWR from "swr";
 
 const statsTitle = {
   "Global Score": "综合得分",
@@ -14,33 +15,14 @@ const statsTitle = {
 } as Record<string, string>;
 
 export function USNewsRank() {
-  const [usnewsWorldRankings, setUSNewsWorldRankings] = useState<USNewsWorldRanking[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { data = [], isLoading } = useSWR(USNEWS_RANK_KEY, () => getUSNewsWorldRankings().then((res) => res.data));
   const { id } = useParams<{ id: string }>();
-  const rankDetails = usnewsWorldRankings.find((u) => u.id.toString() === id);
+  const rankDetails = data?.find((u) => u.id.toString() === id);
   const univList = useUniversityStore((state) => state.univList);
   const cnName = useMemo(() => {
     const u = univList.find((u) => u?.nameEn?.toLowerCase() === rankDetails?.name);
     return u?.nameCn;
   }, [rankDetails?.name, univList]);
-
-  useEffect(() => {
-    setLoading(true);
-    getUSNewsWorldRankings()
-      .then((res) => {
-        setUSNewsWorldRankings(res.data);
-      })
-      .catch((err) => {
-        Toast.show({
-          icon: "fail",
-          content: "获取 USNEWS 排名数据失败了...",
-        });
-      })
-
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
 
   return (
     <div style={{ overflowY: "auto" }}>
@@ -66,7 +48,7 @@ export function USNewsRank() {
           </Space>
         }
       >
-        <SkeletonWrapper loading={loading} showTitle lineCount={2}>
+        <SkeletonWrapper loading={isLoading} showTitle lineCount={2}>
           <Space direction="vertical" style={{ "--gap-horizontal": "4px" }}>
             <div style={{ fontSize: 18, fontWeight: "bold" }}>
               {cnName ?? getCnNameFromTranslation(rankDetails?.name)}
@@ -80,7 +62,7 @@ export function USNewsRank() {
       </Card>
 
       <Card style={{ margin: 12 }} title="统计数据">
-        <SkeletonWrapper loading={loading} showTitle lineCount={2}>
+        <SkeletonWrapper loading={isLoading} showTitle lineCount={2}>
           <Grid columns={2}>
             {rankDetails?.stats?.map((stat) => (
               <Grid.Item key={stat.label}>

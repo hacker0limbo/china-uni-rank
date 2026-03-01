@@ -31,6 +31,7 @@ export function QSRankings() {
   }, [countriesPickerValue]);
 
   // 这里把 page 通过参数传进来调用, 而不是走状态, 是因为需要走 loadMore 拿到最新的 page
+  // 这里不使用 swr 改造因为不适配, 这里的模型是通过不断调用请求手动触发, 需要返回请求的 promise, swr 的模型是依赖状态改变.
   const loadQSWorldRankings = useCallback(
     (page: number) => {
       setLoadingQSRankings(true);

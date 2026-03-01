@@ -1,23 +1,28 @@
 import { Header, SkeletonWrapper } from "../../components";
-import { ARWU_BASE_URL, getARWUWoldRankings, type ARWUWoldRanking, type ARWUWoldRankingsResponse } from "../../api";
+import {
+  ARWU_BASE_URL,
+  ARWU_RANK_KEY,
+  getARWUWoldRankings,
+  type ARWUWoldRanking,
+  type ARWUWoldRankingsResponse,
+} from "../../api";
 import { useEffect, useMemo, useState } from "react";
 import { arwuYears, arwuCountries, PAGE_SIZE } from "../../constant";
 import { Dropdown, ErrorBlock, Grid, List, Image, Space, InfiniteScroll, Picker, Toast } from "antd-mobile";
 import { DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
-import { useLocation } from "wouter";
 import { sleep } from "../../utils";
-import { useUniversityStore } from "../../store";
 import queryString from "query-string";
+import useSWR from "swr";
 
 export function ARWURankings() {
-  const navigate = useLocation()[1];
-  // 排名数据
-  const [arwuRankings, setARWURankings] = useState<ARWUWoldRanking[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [yearPickerValue, setYearPickerValue] = useState<[string]>([arwuYears[0]]);
   const [showCountriesPicker, setShowCountriesPicker] = useState(false);
   const [countriesPickerValue, setCountriesPickerValue] = useState<[string]>([arwuCountries[0]]);
+  const { data, isLoading: loading } = useSWR([ARWU_RANK_KEY, yearPickerValue[0]], ([_, year]) =>
+    getARWUWoldRankings(year).then((res) => res.data?.[0]),
+  );
+  const arwuRankings = useMemo(() => data?.univData?.filter((u) => arwuCountries.includes(u.region)) || [], [data]);
   const [currentPage, setCurrentPage] = useState<number>(0);
   const filteredRankings = useMemo(() => {
     return arwuRankings.filter((r) =>
@@ -29,26 +34,6 @@ export function ARWURankings() {
     () => filteredRankings.slice(0, currentPage * PAGE_SIZE),
     [filteredRankings, currentPage],
   );
-
-  useEffect(() => {
-    setLoading(true);
-    getARWUWoldRankings(yearPickerValue[0])
-      .then((res) => {
-        const data = res.data?.[0];
-        // 只存储中国内地和港澳台的高校
-        setARWURankings(data?.univData?.filter((u) => arwuCountries.includes(u.region)) || []);
-      })
-      .catch((err) => {
-        console.error("报错了", err);
-        Toast.show({
-          icon: "fail",
-          content: "获取软科排名数据失败了...",
-        });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [yearPickerValue]);
 
   return (
     <>
