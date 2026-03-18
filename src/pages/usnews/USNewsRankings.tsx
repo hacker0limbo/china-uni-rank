@@ -1,6 +1,6 @@
 import { Dropdown, ErrorBlock, InfiniteScroll, List, NoticeBar, Picker, Space, Toast } from "antd-mobile";
 import { DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { getUSNewsWorldRankings, USNEWS_RANK_KEY } from "../../api";
 import { useMemo, useState } from "react";
 import { PAGE_SIZE, usnewsCountries } from "../../constant";
@@ -10,7 +10,7 @@ import { Header, SkeletonWrapper } from "../../components";
 import useSWR from "swr";
 
 export function USNewsRankings() {
-  const navigate = useLocation()[1];
+  const navigate = useNavigate();
   const { data: usnewsWorldRankings = [], isLoading } = useSWR(USNEWS_RANK_KEY, () =>
     getUSNewsWorldRankings().then((res) => res.data),
   );

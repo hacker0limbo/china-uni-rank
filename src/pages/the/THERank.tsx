@@ -20,9 +20,8 @@ import {
   LinkOutline,
   UnorderedListOutline,
 } from "antd-mobile-icons";
-import queryString from "query-string";
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useParams } from "wouter";
+import { useSearchParams } from "react-router-dom";
 import {
   getTHEWorldRankings,
   type THEWorldRanking,
@@ -78,7 +77,9 @@ const trendTitles = {
 } as Record<string, string>;
 
 export function THERank() {
-  const { year, nid } = queryString.parse(window.location.hash.split("?")[1]) as TheRankParams;
+  const [searchParams] = useSearchParams();
+  const year = (searchParams.get("year") ?? "") as TheRankParams["year"];
+  const nid = searchParams.get("nid") ?? "";
   const { data: theRankings, isLoading: loadingRankDetails } = useSWR(year ? [THE_RANK_KEY, year] : null, ([_, year]) =>
     getTHEWorldRankings(year).then((res) => res.data?.data),
   );

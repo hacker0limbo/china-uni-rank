@@ -1,6 +1,6 @@
 import { NavBar, Popover } from "antd-mobile";
 import { AppOutline, EyeOutline, MoreOutline, RedoOutline } from "antd-mobile-icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { useSettingsStore } from "../store";
 
 export type HeaderProps = {
@@ -10,7 +10,7 @@ export type HeaderProps = {
 
 // 基于 Navbar 实现统一的 Header 组件
 export function Header({ title, showBack = true }: HeaderProps) {
-  const navigate = useLocation()[1];
+  const navigate = useNavigate();
   const theme = useSettingsStore((state) => state.theme);
   const setTheme = useSettingsStore((state) => state.setTheme);
 

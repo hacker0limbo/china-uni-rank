@@ -12,9 +12,11 @@ import { Dropdown, ErrorBlock, Grid, List, Image, Space, InfiniteScroll, Picker,
 import { DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
 import { sleep } from "../../utils";
 import queryString from "query-string";
+import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 
 export function ARWURankings() {
+  const navigate = useNavigate();
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [yearPickerValue, setYearPickerValue] = useState<[string]>([arwuYears[0]]);
   const [showCountriesPicker, setShowCountriesPicker] = useState(false);
@@ -89,7 +91,10 @@ export function ARWURankings() {
                       // 如果是港澳台高校 univUpEn 会存在值
                       hmt: univ.univUpEn ? true : false,
                     });
-                    window.location.hash = `/arwu/rank?${params}`;
+                    navigate({
+                      pathname: "/arwu/rank",
+                      search: `?${params}`,
+                    });
                   }}
                 >
                   <Space style={{ "--gap-horizontal": "4px", color: "var(--adm-color-danger)" }}>

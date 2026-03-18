@@ -1,6 +1,6 @@
 import { AutoCenter, Card, Ellipsis, ErrorBlock, Grid, NoticeBar, Space, Toast } from "antd-mobile";
 import { FireFill, LinkOutline } from "antd-mobile-icons";
-import { useParams } from "wouter";
+import { useParams } from "react-router-dom";
 import { useUniversityStore } from "../../store";
 import { usnewsCountries } from "../../constant";
 import { getUSNewsWorldRankings, USNEWS_RANK_KEY } from "../../api";

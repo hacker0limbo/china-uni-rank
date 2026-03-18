@@ -7,10 +7,12 @@ import { Header, SkeletonWrapper } from "../../components";
 import { getCnNameFromTranslation, sleep } from "../../utils";
 import queryString from "query-string";
 import { useUniversityStore } from "../../store";
+import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 
 // 展示所有泰晤士排名的学校
 export function THERankings() {
+  const navigate = useNavigate();
   // 存的是年份, e.g. 2025
   const [yearPickerValue, setYearPickerValue] = useState<[(typeof theYears)[number]]>([theLatestYear]);
   const { data: theRankings = [], isLoading: loadingTheRankings } = useSWR(
@@ -88,7 +90,10 @@ export function THERankings() {
                       year: yearPickerValue[0],
                       nid: theUniv.nid,
                     };
-                    window.location.hash = `/the/rank?${queryString.stringify(params)}`;
+                    navigate({
+                      pathname: "/the/rank",
+                      search: `?${queryString.stringify(params)}`,
+                    });
                   }}
                 >
                   <Space style={{ "--gap-horizontal": "4px", color: "#b70d7f" }}>

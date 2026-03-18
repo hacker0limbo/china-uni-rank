@@ -21,7 +21,7 @@ import {
   StarOutline,
   UnorderedListOutline,
 } from "antd-mobile-icons";
-import { useLocation } from "wouter";
+import { useSearchParams } from "react-router-dom";
 import {
   getQSWorldRankings,
   type QSWorldRanking,
@@ -34,7 +34,6 @@ import {
   QS_RANK_KEY,
 } from "../../api";
 import { useEffect, useMemo, useState } from "react";
-import queryString from "query-string";
 import { qsNidToYear, qsCountryLabels } from "../../constant";
 import { Header, RankTrendLineChart, ScoreBarChart, SkeletonWrapper } from "../../components";
 import { useSettingsStore, useUniversityStore } from "../../store";
@@ -62,7 +61,10 @@ const scoreTitles = {
 } as Record<string, string>;
 
 export function QSRank() {
-  const { coreId, yearNid, title } = queryString.parse(window.location.hash.split("?")[1]) as QSRankParams;
+  const [searchParams] = useSearchParams();
+  const coreId = searchParams.get("coreId") ?? "";
+  const yearNid = (searchParams.get("yearNid") ?? "") as QSRankParams["yearNid"];
+  const title = searchParams.get("title") ?? "";
   const { data: rankDetails, isLoading: loadingRankDetails } = useSWR(
     title && yearNid ? [QS_RANK_KEY, { nid: yearNid, items_per_page: 1, search: title }] : null,
     ([_, payload]) =>

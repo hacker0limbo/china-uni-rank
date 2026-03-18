@@ -1,7 +1,7 @@
 import { List, Space, Image, Tag } from "antd-mobile";
 import { ARWU_BASE_URL, type HMTUniversityARWU } from "../api";
 import { EnvironmentOutline, FireFill } from "antd-mobile-icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { getCnNameFromTranslation } from "../utils";
 
 export type HMTUnivListItemProps = {
@@ -10,7 +10,7 @@ export type HMTUnivListItemProps = {
 
 // 港澳台高校的列表项组件
 export function HMTUnivListItem({ univ }: HMTUnivListItemProps) {
-  const navigate = useLocation()[1];
+  const navigate = useNavigate();
 
   return (
     <List.Item

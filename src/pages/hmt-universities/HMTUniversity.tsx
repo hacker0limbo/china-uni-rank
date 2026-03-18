@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Header, RankLogo, Score, SkeletonWrapper } from "../../components";
-import { useLocation, useParams } from "wouter";
+import { useNavigate, useParams } from "react-router-dom";
 import { useFavoriteUnivStore, useSettingsStore, useUniversityStore } from "../../store";
 import {
   ARWU_BASE_URL,
@@ -44,8 +44,9 @@ const globalSubjectColumns: ColumnDefine[] = [
 ];
 
 export function HMTUniversity() {
-  const navigate = useLocation()[1];
-  const { up } = useParams<{ up: string }>();
+  const navigate = useNavigate();
+  const { up: upParam } = useParams<{ up: string }>();
+  const up = upParam ?? "";
   const [loadingHMTDetailsARWU, setLoadingHMTDetailsARWU] = useState(false);
   const [hmtDetailsARWU, setHMTDetailsARWU] = useState<HMTUniversityARWUDetail | null>(null);
   const favoriteUps = useFavoriteUnivStore((state) => state.favoriteUps);
@@ -219,7 +220,10 @@ export function HMTUniversity() {
                       // 带上标识标识是港澳台的学校
                       hmt: true,
                     });
-                    window.location.hash = `/arwu/rank?${params}`;
+                    navigate({
+                      pathname: "/arwu/rank",
+                      search: `?${params}`,
+                    });
                   }}
                 >
                   {arwuYears[0]} 软科世界大学排名 <RightOutline fontSize={16} />
@@ -241,7 +245,10 @@ export function HMTUniversity() {
                       yearNid: qsLatestYearNid,
                     });
                     if (qsRankDetails?.rank_display) {
-                      window.location.hash = `/qs/rank?${params}`;
+                      navigate({
+                        pathname: "/qs/rank",
+                        search: `?${params}`,
+                      });
                     }
                   }}
                 >
@@ -263,7 +270,10 @@ export function HMTUniversity() {
                       nid: theRankDetails?.nid,
                     });
                     if (theRankDetails?.rank) {
-                      window.location.hash = `/the/rank?${params}`;
+                      navigate({
+                        pathname: "/the/rank",
+                        search: `?${params}`,
+                      });
                     }
                   }}
                 >

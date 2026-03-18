@@ -1,10 +1,10 @@
 import { List } from "antd-mobile";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { useSettingsStore } from "../../store";
 import { Header } from "../../components";
 
 export function Settings() {
-  const navigate = useLocation()[1];
+  const navigate = useNavigate();
   const theme = useSettingsStore((state) => state.theme);
 
   return (

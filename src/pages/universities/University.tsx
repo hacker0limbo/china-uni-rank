@@ -22,7 +22,7 @@ import {
   RightOutline,
   StarOutline,
 } from "antd-mobile-icons";
-import { useLocation, useParams } from "wouter";
+import { useNavigate, useParams } from "react-router-dom";
 import { useFavoriteUnivStore, useSettingsStore, useUniversityStore } from "../../store";
 import {
   ARWU_BASE_URL,
@@ -100,8 +100,9 @@ const globalSubjectColumns: ColumnDefine[] = [
 ];
 
 export function University() {
-  const navigate = useLocation()[1];
-  const { up } = useParams<{ up: string }>();
+  const navigate = useNavigate();
+  const { up: upParam } = useParams<{ up: string }>();
+  const up = upParam ?? "";
   const categoryData = useUniversityStore((state) => state.categoryData);
   const [loadingDetailsARWU, setLoadingDetailsARWU] = useState(false);
   const [detailsARWU, setDetailsARWU] = useState<UniversityARWUDetail | null>(null);
@@ -300,7 +301,10 @@ export function University() {
                       up: detailsARWU?.up,
                       year: arwuYears[0],
                     });
-                    window.location.hash = `/arwu/rank?${params}`;
+                    navigate({
+                      pathname: "/arwu/rank",
+                      search: `?${params}`,
+                    });
                   }}
                 >
                   {arwuYears[0]} 软科世界大学排名 <RightOutline fontSize={16} />
@@ -322,7 +326,10 @@ export function University() {
                       yearNid: qsLatestYearNid,
                     });
                     if (qsRankDetails?.rank_display) {
-                      window.location.hash = `/qs/rank?${params}`;
+                      navigate({
+                        pathname: "/qs/rank",
+                        search: `?${params}`,
+                      });
                     }
                   }}
                 >
@@ -344,7 +351,10 @@ export function University() {
                       nid: theRankDetails?.nid,
                     });
                     if (theRankDetails?.rank) {
-                      window.location.hash = `/the/rank?${params}`;
+                      navigate({
+                        pathname: "/the/rank",
+                        search: `?${params}`,
+                      });
                     }
                   }}
                 >

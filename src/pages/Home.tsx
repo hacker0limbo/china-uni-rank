@@ -1,11 +1,11 @@
 import { Card, List, Button, ErrorBlock, SwipeAction, SafeArea, Tabs } from "antd-mobile";
 import { HistogramOutline, TravelOutline, UnorderedListOutline } from "antd-mobile-icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { FavoriteSwipeAction, Header, HMTUnivListItem, UnivListItem } from "../components";
 import { useFavoriteUnivStore, useHMTUniversityStore, useUniversityStore } from "../store";
 
 export function Home() {
-  const navigate = useLocation()[1];
+  const navigate = useNavigate();
   const favoriteUps = useFavoriteUnivStore((state) => state.favoriteUps);
   const removeFavorite = useFavoriteUnivStore((state) => state.removeFavorite);
   const univList = useUniversityStore((state) => state.univList);

@@ -1,4 +1,3 @@
-import queryString from "query-string";
 import { Header, RankLogo, RankTrendLineChart, Score, ScoreBarChart, SkeletonWrapper } from "../../components";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -16,6 +15,7 @@ import { Card, Space, Toast, Image, Grid, AutoCenter, Tabs, Steps, Segmented } f
 import { FireFill, HistogramOutline, LinkOutline, UnorderedListOutline } from "antd-mobile-icons";
 import { isEmpty } from "lodash-es";
 import { getChartOption, getColorFromADM, parseRank } from "../../utils";
+import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
 
 type ARWURankParams = {
@@ -25,11 +25,10 @@ type ARWURankParams = {
 };
 
 export function ARWURank() {
-  const {
-    up,
-    year,
-    hmt = false,
-  } = queryString.parse(window.location.hash.split("?")[1], { parseBooleans: true }) as ARWURankParams;
+  const [searchParams] = useSearchParams();
+  const up = searchParams.get("up") ?? "";
+  const year = searchParams.get("year") ?? "";
+  const hmt = searchParams.get("hmt") === "true";
   const { data, isLoading } = useSWR([ARWU_RANK_KEY, year], ([_, year]) =>
     getARWUWoldRankings(year).then((res) => res.data?.[0]),
   );

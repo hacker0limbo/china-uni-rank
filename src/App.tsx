@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { TabBar, Toast, SafeArea } from "antd-mobile";
+import { TabBar, Toast } from "antd-mobile";
 import { AppOutline, SetOutline } from "antd-mobile-icons";
-import { Router, Switch, Route } from "wouter";
-import { useHashLocation } from "wouter/use-hash-location";
+import { HashRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { NotFound } from "./pages/NotFound";
 import { Settings, ThemeSetting } from "./pages/settings";
@@ -32,11 +31,15 @@ Toast.config({
   maskClickable: false,
 });
 
-function App() {
-  const [location, navigate] = useHashLocation();
+function AppContent() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { setUnivList, setCategoryData } = useUniversityStore();
   const { setHMTUnivList } = useHMTUniversityStore();
-  const showTabBar = useMemo(() => location === "/" || location.startsWith("/settings"), [location]);
+  const showTabBar = useMemo(
+    () => location.pathname === "/" || location.pathname.startsWith("/settings"),
+    [location.pathname],
+  );
   const theme = useSettingsStore((state) => state.theme);
   const [loadingUnivList, setLoadingUnivList] = useState(false);
   const [loadingHMTUnivList, setLoadingHMTUnivList] = useState(false);
@@ -128,27 +131,24 @@ function App() {
         },
       }}
     >
-      <Router hook={useHashLocation}>
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/universities" component={Universities} />
-          <Route path="/universities/:up" component={University} />
-          <Route path="/hmt/universities" component={HMTUniversities} />
-          <Route path="/hmt/universities/:up" component={HMTUniversity} />
-          <Route path="/qs" component={QSRankings} />
-          {/* NOTE: 这里会需要传比较多的 searchParams, 所以这里需要手动匹配 searchParams, 这里的路由是 /qs/rank?coreId=xx&title=yy... */}
-          <Route path={/^\/qs\/rank\?.*$/} component={QSRank} />
-          <Route path="/the" component={THERankings} />
-          <Route path={/^\/the\/rank\?.*$/} component={THERank} />
-          <Route path="/usnews" component={USNewsRankings} />
-          <Route path="/usnews/:id" component={USNewsRank} />
-          <Route path="/arwu" component={ARWURankings} />
-          <Route path={/^\/arwu\/rank\?.*$/} component={ARWURank} />
-          <Route path="/settings" component={Settings} />
-          <Route path="/settings/theme" component={ThemeSetting} />
-          <Route component={NotFound} />
-        </Switch>
-      </Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/universities" element={<Universities />} />
+        <Route path="/universities/:up" element={<University />} />
+        <Route path="/hmt/universities" element={<HMTUniversities />} />
+        <Route path="/hmt/universities/:up" element={<HMTUniversity />} />
+        <Route path="/qs" element={<QSRankings />} />
+        <Route path="/qs/rank" element={<QSRank />} />
+        <Route path="/the" element={<THERankings />} />
+        <Route path="/the/rank" element={<THERank />} />
+        <Route path="/usnews" element={<USNewsRankings />} />
+        <Route path="/usnews/:id" element={<USNewsRank />} />
+        <Route path="/arwu" element={<ARWURankings />} />
+        <Route path="/arwu/rank" element={<ARWURank />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings/theme" element={<ThemeSetting />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       {showTabBar ? (
         <TabBar
           safeArea
@@ -158,7 +158,7 @@ function App() {
             width: "100%",
             backgroundColor: "var(--adm-color-background)",
           }}
-          activeKey={`/${location.split("/")[1]}`}
+          activeKey={`/${location.pathname.split("/")[1]}`}
           onChange={(key) => {
             navigate(key);
           }}
@@ -168,6 +168,14 @@ function App() {
         </TabBar>
       ) : null}
     </SWRConfig>
+  );
+}
+
+function App() {
+  return (
+    <HashRouter>
+      <AppContent />
+    </HashRouter>
   );
 }
 

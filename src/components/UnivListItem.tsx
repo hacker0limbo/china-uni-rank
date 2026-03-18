@@ -2,7 +2,7 @@ import { List, Space, Image, Tag } from "antd-mobile";
 import { ARWU_BASE_URL, type UniversityARWU } from "../api";
 import { EnvironmentOutline, FireFill } from "antd-mobile-icons";
 import { useUniversityStore } from "../store";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 
 export type UnivListItemProps = {
   univ: UniversityARWU;
@@ -11,7 +11,7 @@ export type UnivListItemProps = {
 // 再 universities 和 favorites 页面都会用到
 export function UnivListItem({ univ }: UnivListItemProps) {
   const categoryData = useUniversityStore((state) => state.categoryData);
-  const navigate = useLocation()[1];
+  const navigate = useNavigate();
 
   return (
     <List.Item

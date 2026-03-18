@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getQSWorldRankings, QS_CN_BASE_URL, type QSWorldRanking } from "../../api";
 import { Card, Space, Toast, Grid, Dropdown, List, Image, ErrorBlock, InfiniteScroll, Picker } from "antd-mobile";
 import { AppOutline, DownFill, EnvironmentOutline, FireFill } from "antd-mobile-icons";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { Header, SkeletonWrapper } from "../../components";
 import { uniqBy } from "lodash-es";
 import { useUniversityStore } from "../../store";
@@ -12,7 +12,7 @@ import { getCnNameFromTranslation } from "../../utils";
 
 // 展示所有 qs 排名的学校
 export function QSRankings() {
-  const navigate = useLocation()[1];
+  const navigate = useNavigate();
   const [loadingQSRankings, setLoadingQSRankings] = useState(false);
   const [qsRankings, setQSRankings] = useState<QSWorldRanking[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(0);
@@ -134,8 +134,10 @@ export function QSRankings() {
                     title: qsUniv.title,
                     yearNid: yearPickerValue[0],
                   });
-                  // 这里不使用 navigate 是因为 wouter 的 useLocation 在 hash 模式下会有问题
-                  window.location.hash = `/qs/rank?${params}`;
+                  navigate({
+                    pathname: "/qs/rank",
+                    search: `?${params}`,
+                  });
                 }}
               >
                 <Space style={{ "--gap-horizontal": "4px", color: "var(--adm-color-yellow)" }}>
